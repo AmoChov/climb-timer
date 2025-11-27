@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ClimbTimer Pro</title>
+  
+  <link rel="icon" href="timer.ico" type="image/x-icon">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;800&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#050505">
+
+  
+  <style>
+    :root {
+      --bg-color: #050505;
+      --card-bg: #101216;
+      --text-main: #e0e0e0;
+      --text-muted: #888888;
+      --color-prepare: #f59e0b;
+      --color-work: #ef4444;
+      --color-rest: #10b981;
+      --color-cycle-rest: #3b82f6;
+      --color-idle: #8b5cf6;
+      --shadow-color: var(--color-idle);
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Manrope', sans-serif;
+      color: var(--text-main);
+      height: 100dvh;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+
+      background-color: var(--bg-color);
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    header {
+      padding: 20px 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      z-index: 10;
+      background: linear-gradient(to bottom, rgba(5,5,5,0.95), transparent);
+    }
+
+    .brand h1 {
+      margin: 0; font-size: 1.25rem; font-weight: 800;
+      letter-spacing: -0.5px; color: white; text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(255,255,255,0.2);
+    }
+    .subtitle {
+      font-size: 0.75rem; color: var(--text-muted); font-weight: 600; letter-spacing: 2px;
+    }
+
+    button.icon-btn {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-main); width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+      backdrop-filter: blur(5px);
+    }
+    button.icon-btn:active { transform: scale(0.95); }
+
+    main {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      position: relative; width: 100%;
+    }
+
+    .timer-wrapper {
+      position: relative; width: 280px; height: 280px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .glow-backdrop {
+      position: absolute; width: 70%; height: 70%; border-radius: 50%;
+      background: var(--shadow-color); filter: blur(50px); opacity: 0.25;
+      transition: background 0.4s ease; z-index: 0;
+    }
+
+    svg.progress-ring {
+      width: 100%; height: 100%; transform: rotate(-90deg);
+      z-index: 2; filter: drop-shadow(0 0 8px rgba(0,0,0,0.6));
+    }
+    
+    .ring-bg { stroke: #18181b; stroke-width: 8; fill: transparent; }
+
+    .ring-val {
+      stroke: var(--shadow-color); stroke-width: 8; stroke-linecap: round; fill: transparent;
+      stroke-dasharray: 816; stroke-dashoffset: 0;
+      transition: stroke-dashoffset 1s linear, stroke 0.4s ease;
+    }
+
+    .timer-content {
+      position: absolute; z-index: 3; text-align: center;
+      display: flex; flex-direction: column; align-items: center;
+    }
+
+    .phase-badge {
+      font-size: 0.8rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 2px; padding: 6px 14px; border-radius: 20px;
+      background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.15);
+      color: var(--shadow-color); margin-bottom: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .time-digits {
+      font-family: 'JetBrains Mono', monospace; font-size: 4.8rem;
+      font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums;
+      text-shadow: 0 5px 15px rgba(0,0,0,0.7);
+    }
+
+    .total-time {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
+      color: var(--text-muted); margin-top: 10px; opacity: 0.8;
+    }
+
+    .dashboard {
+      width: 100%; max-width: 360px; padding: 0 20px;
+      display: flex; flex-direction: column; gap: 16px; z-index: 5;
+    }
+
+    .stats-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+
+    .stat-card {
+      background: rgba(20, 22, 26, 0.8); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px; padding: 12px; text-align: center;
+      backdrop-filter: blur(10px);
+    }
+
+    .stat-val {
+      font-family: 'JetBrains Mono', monospace; font-size: 1.3rem;
+      font-weight: 700; display: block; color: white;
+    }
+    
+    .stat-label {
+      font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 1px; margin-top: 4px; display: block;
+    }
+
+    .instruction-bar {
+      background: rgba(20, 22, 26, 0.9); border-left: 3px solid var(--shadow-color);
+      padding: 16px; border-radius: 12px; font-size: 0.95rem;
+      display: flex; align-items: center; gap: 14px; transition: border-color 0.4s;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.05); border-left-width: 3px;
+    }
+    .inst-icon { font-size: 1.2rem; }
+
+    .controls-area {
+      padding: 24px; padding-bottom: max(24px, env(safe-area-inset-bottom));
+      width: 100%; display: flex; gap: 12px;
+      background: linear-gradient(to top, rgba(0,0,0,0.95) 30%, transparent);
+    }
+
+    .btn {
+      border: none; padding: 20px; border-radius: 18px;
+      font-size: 1rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 1px; cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-main {
+      flex: 2; background: #e0e0e0; color: black;
+      box-shadow: 0 0 25px rgba(255,255,255,0.1);
+    }
+    .btn-sub {
+      flex: 1; background: #1f2228; color: white; border: 1px solid #333;
+    }
+
+    .modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+      z-index: 100; display: flex; align-items: flex-end;
+      visibility: hidden; opacity: 0; transition: all 0.25s ease;
+    }
+    .modal.open { visibility: visible; opacity: 1; }
+
+    .modal-content {
+      width: 100%; background: #14161a; border-top: 1px solid #333;
+      border-radius: 24px 24px 0 0; padding: 24px;
+      padding-bottom: max(30px, env(safe-area-inset-bottom));
+      transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      max-height: 85vh; overflow-y: auto;
+    }
+    .modal.open .modal-content { transform: translateY(0); }
+
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 24px;
+    }
+    .modal-title { font-size: 1.2rem; font-weight: 800; color: white; }
+    .close-btn {
+      background: #2a2d35; border: none; color: white;
+      width: 32px; height: 32px; border-radius: 50%;
+      font-size: 1.2rem; cursor: pointer;
+    }
+
+    .setting-row { margin-bottom: 20px; }
+    .setting-label {
+      display: block; color: var(--text-muted); font-size: 0.75rem;
+      text-transform: uppercase; font-weight: 700; margin-bottom: 8px;
+    }
+    select, input {
+      width: 100%; background: #050505; border: 1px solid #333;
+      color: white; padding: 14px; border-radius: 12px;
+      font-size: 1rem; font-family: 'Manrope', sans-serif; outline: none;
+    }
+    select:focus, input:focus { border-color: var(--color-idle); }
+
+    .diff-selector {
+      display: flex; background: #050505; padding: 4px;
+      border-radius: 14px; border: 1px solid #333;
+    }
+    .diff-opt {
+      flex: 1; padding: 10px; text-align: center;
+      background: transparent; color: #666; border-radius: 10px;
+      font-size: 0.85rem; font-weight: 700; border: none; cursor: pointer;
+    }
+    .diff-opt.active {
+      background: #222; color: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    .info-badge {
+      display: inline-block; padding: 4px 10px; border-radius: 6px;
+      background: #222; color: var(--color-prepare);
+      font-size: 0.75rem; font-weight: 700; margin-bottom: 12px; border: 1px solid #333;
+    }
+    .info-content p {
+      font-size: 0.95rem; line-height: 1.6; color: #ccc; margin-bottom: 14px;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>Climb Timer</h1>
+      <span class="subtitle">FOCUS & POWER</span>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button class="icon-btn" id="btnInfo" title="Info">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+      </button>
+      <button class="icon-btn" id="btnSettings" title="Setup">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="timer-wrapper">
+      <div class="glow-backdrop" id="glowBackdrop"></div>
+      <svg class="progress-ring" viewBox="0 0 300 300">
+        <circle class="ring-bg" cx="150" cy="150" r="130"></circle>
+        <circle class="ring-val" id="ringProgress" cx="150" cy="150" r="130"></circle>
+      </svg>
+      <div class="timer-content">
+        <div class="phase-badge" id="phaseLabel">IDLE</div>
+        <div class="time-digits" id="timeDisplay">00:00</div>
+        <div class="total-time" id="totalTimeDisplay">Total: 00:00</div>
+      </div>
+    </div>
+
+    <div class="dashboard">
+      <div class="instruction-bar" id="instructionBar">
+        <span class="inst-icon">💡</span>
+        <span id="instructionText">Priprav sa.</span>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-val"><span id="roundCurr">0</span>/<span id="roundTot">0</span></span>
+          <span class="stat-label">Opakovanie</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-val"><span id="cycleCurr">0</span>/<span id="cycleTot">0</span></span>
+          <span class="stat-label">Séria</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <section class="controls-area">
+    <button class="btn btn-sub" id="btnReset" disabled>RESET</button>
+    <button class="btn btn-main" id="btnAction">ŠTART</button>
+  </section>
+
+  <audio id="sndPrepare" src="prepare.mp3" preload="auto"></audio>
+  <audio id="sndPhase" src="phase.mp3" preload="auto"></audio>
+  <audio id="sndCount" src="countdown.mp3" preload="auto"></audio>
+  <audio id="sndFinish" src="finish.mp3" preload="auto"></audio>
+
+  <div class="modal" id="settingsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">Nastavenie tréningu</div>
+        <button class="close-btn" id="closeSettings">×</button>
+      </div>
+      <div class="setting-row">
+        <label class="setting-label">Zvoľ plán</label>
+        <select id="presetSelect"></select>
+      </div>
+      <div class="setting-row" id="difficultyRow">
+        <label class="setting-label">Úroveň</label>
+        <div class="diff-selector">
+          <button class="diff-opt" data-val="easy">Easy</button>
+          <button class="diff-opt active" data-val="medium">Medium</button>
+          <button class="diff-opt" data-val="hard">Hard</button>
+        </div>
+      </div>
+      <div id="customConfig" class="hidden">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+          <div><label class="setting-label">Prepare (s)</label><input type="number" id="c_prep" value="5"></div>
+          <div><label class="setting-label">Work (s)</label><input type="number" id="c_work" value="10"></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+          <div><label class="setting-label">Rest (s)</label><input type="number" id="c_rest" value="5"></div>
+          <div><label class="setting-label">Rounds</label><input type="number" id="c_rounds" value="6"></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+          <div><label class="setting-label">Cycles</label><input type="number" id="c_cycles" value="3"></div>
+          <div><label class="setting-label">Cycle Rest (s)</label><input type="number" id="c_crest" value="180"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="infoModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">O tomto tréningu</div>
+        <button class="close-btn" id="closeInfo">×</button>
+      </div>
+      <div class="info-content" id="infoContent"></div>
+    </div>
+  </div>
+
+  <script>
+  /* === 1. DATA PRESETS === */
+  const presets = [
+    {
+      id: 'warmup',
+      name: 'Warm-up (Rozcvička)',
+      info: { 
+        badge: 'Prevencia zranení', 
+        text: `<p><strong>Prečo:</strong> Príprava tkanív na záťaž. Zvyšuje teplotu svalov a viskozitu v kĺboch.</p><p><strong>Ako:</strong> Začni na veľkých chytoch, postupne zmenšuj. Ľahké visy a zhyby.</p>`
+      },
+      base: { prep: 5, work: 20, rest: 40, rounds: 4, cycles: 2, cRest: 60 },
+      levels: { easy: { rounds: 3, cycles: 1 }, medium: {}, hard: { rounds: 5 } },
+      ui: { hintWork: 'Ľahký vis / pohyb', hintRest: 'Krúženie ramenami', hintCRest: 'Kontrola: Si zahriaty?' }
+    },
+    {
+      id: 'hang-max',
+      name: 'Max Hangs (Sila)',
+      info: {
+        badge: 'Neuromuskulárna Sila',
+        text: `
+          <p><strong>Pôvod:</strong> Protokol typu Eva López.</p>
+          <p><strong>Mechanizmus:</strong> Krátke visy (10s) na 90–100 % maxima s dlhým odpočinkom (3 min+).</p>
+          <p><strong>Prečo to funguje:</strong> Aktivuje nervovú sústavu bez veľkej „pumpy“, zvyšuje max silu bez veľkého nárastu hmoty.</p>
+        `
+      },
+      base: { prep: 5, work: 10, rest: 180, rounds: 5, cycles: 2, cRest: 300 },
+      levels: { easy: { rounds: 3, cycles: 1 }, medium: {}, hard: { rounds: 6, rest: 150 } },
+      ui: { hintWork: 'Vis na ~90 % maxima. Drž čistú techniku.', hintRest: 'Úplný oddych. Prejdi sa.', hintCRest: 'Dlhá pauza. Priprav úchop.' }
+    },
+    {
+      id: 'hang-repeaters',
+      name: 'Repeaters 7/3 (Vytrvalosť)',
+      info: {
+        badge: 'Silová Vytrvalosť',
+        text: `
+          <p><strong>Mechanizmus:</strong> 7 s vis / 3 s pauza vytvára lokálnu únavu a „pumpu“.</p>
+          <p><strong>Prečo to funguje:</strong> Zlepšuje toleranciu na zakyslenie a cievne zásobenie predlaktí.</p>
+        `
+      },
+      base: { prep: 5, work: 7, rest: 3, rounds: 6, cycles: 3, cRest: 180 },
+      levels: { easy: { cycles: 2 }, medium: {}, hard: { cycles: 4 } },
+      ui: { hintWork: 'Drž techniku aj keď páli.', hintRest: 'Rýchlo stras ruky.', hintCRest: 'Vydýchaj pumpu, ale nevychlaď sa.' }
+    },
+    {
+      id: 'pull-strength',
+      name: 'Weighted Pull-ups',
+      info: {
+        badge: 'Ťahová Sila',
+        text: `
+          <p><strong>Mechanizmus:</strong> Nízke počty (4–6) s pridanou váhou, dlhšie pauzy.</p>
+          <p><strong>Prečo to funguje:</strong> Silnejší príťah uľahčí ťažké kroky a previsy.</p>
+        `
+      },
+      base: { prep: 10, work: 30, rest: 150, rounds: 5, cycles: 1, cRest: 0 },
+      levels: { easy: { rounds: 3 }, medium: {}, hard: { rounds: 6 } },
+      ui: { hintWork: '4–6 ťažkých zhybov. Čisto.', hintRest: 'Zlož záťaž, rozhýb ramená.' }
+    },
+    {
+      id: 'pull-emom',
+      name: 'EMOM 10min',
+      info: {
+        badge: 'Kapacita',
+        text: `
+          <p><strong>Mechanizmus:</strong> Každú minútu séria, zvyšok minúty oddych.</p>
+          <p><strong>Prečo to funguje:</strong> Buduje pracovnú kapacitu rúk pre dlhé cesty a viac pokusov.</p>
+        `
+      },
+      base: { prep: 10, work: 15, rest: 45, rounds: 10, cycles: 1, cRest: 0 },
+      levels: { easy: { rounds: 6 }, medium: {}, hard: { rounds: 12 } },
+      ui: { hintWork: 'Séria zhybov, submaximálne.', hintRest: 'Dýchaj, stras ruky.', hintCRest: '—' }
+    },
+    {
+      id: 'frenchies',
+      name: 'Frenchies',
+      info: {
+        badge: 'Lock-off Sila',
+        text: `
+          <p><strong>Mechanizmus:</strong> Zhyb plus výdrže v rôznych uhloch lakťa.</p>
+          <p><strong>Prečo to funguje:</strong> Zlepšuje schopnosť „zamknúť“ ruku pri cvakaní a statických pozíciách.</p>
+        `
+      },
+      base: { prep: 5, work: 45, rest: 240, rounds: 3, cycles: 1, cRest: 0 },
+      levels: { easy: { rounds: 2 }, medium: {}, hard: { rounds: 4 } },
+      ui: { hintWork: 'Zhyb + 3–4 výdrže v rôznych uhloch.', hintRest: 'Dlhý oddych, rozhýb lakte.', hintCRest: '—' }
+    },
+    {
+      id: 'custom',
+      name: 'Vlastný plán',
+      info: { badge: 'Custom', text: '<p>Tvoj tréning, tvoje časy a počty.</p>' },
+      base: { prep: 5, work: 10, rest: 30, rounds: 5, cycles: 2, cRest: 120 },
+      levels: null,
+      ui: { hintWork: 'Makať podľa vlastných pravidiel.', hintRest: 'Oddych.', hintCRest: 'Dlhšia pauza.' }
+    }
+  ];
+
+  /* === 2. UI & STATE === */
+  const els = {
+    ring: document.getElementById('ringProgress'),
+    glow: document.getElementById('glowBackdrop'),
+    time: document.getElementById('timeDisplay'),
+    totalTime: document.getElementById('totalTimeDisplay'),
+    phaseLbl: document.getElementById('phaseLabel'),
+    instText: document.getElementById('instructionText'),
+    round: document.getElementById('roundCurr'),
+    roundTot: document.getElementById('roundTot'),
+    cycle: document.getElementById('cycleCurr'),
+    cycleTot: document.getElementById('cycleTot'),
+    btnAction: document.getElementById('btnAction'),
+    btnReset: document.getElementById('btnReset'),
+    settingsModal: document.getElementById('settingsModal'),
+    infoModal: document.getElementById('infoModal'),
+    infoContent: document.getElementById('infoContent'),
+    presetSel: document.getElementById('presetSelect'),
+    diffBtns: document.querySelectorAll('.diff-opt'),
+    customConfig: document.getElementById('customConfig'),
+    instructionBar: document.getElementById('instructionBar')
+  };
+
+  let currentPresetId = 'warmup';
+  let currentDifficulty = 'medium';
+  let config = {};
+  
+  let timerInterval = null;
+  let isRunning = false;
+  let isPaused = false;
+  let audioUnlocked = false;
+
+  let phase = 'idle'; 
+  let timeLeft = 0;
+  let maxPhaseTime = 0;
+  let totalTimeLeft = 0;
+  let roundIndex = 1;
+  let cycleIndex = 1;
+
+  // flag aby countdown.mp3 hral len raz v danej fáze
+  let countdownPlayed = false;
+
+  const sounds = {
+    prepare: document.getElementById('sndPrepare'),
+    phase: document.getElementById('sndPhase'),
+    count: document.getElementById('sndCount'),
+    finish: document.getElementById('sndFinish')
+  };
+
+  /* === 3. INITIALIZATION === */
+  function init() {
+    presets.forEach(p => {
+      const o = document.createElement('option');
+      o.value = p.id;
+      o.textContent = p.name;
+      if (p.id === 'warmup') o.selected = true;
+      els.presetSel.appendChild(o);
+    });
+
+    els.presetSel.addEventListener('change', () => {
+      currentPresetId = els.presetSel.value;
+      if (currentPresetId !== 'custom') currentDifficulty = 'medium';
+      updateUIConfig();
+      loadConfigAndReset();
+    });
+
+    els.diffBtns.forEach(b => {
+      b.addEventListener('click', (e) => {
+        currentDifficulty = e.target.dataset.val;
+        updateUIConfig();
+        loadConfigAndReset();
+      });
+    });
+
+    els.customConfig.addEventListener('input', () => {
+      if (currentPresetId === 'custom') loadConfigAndReset();
+    });
+
+    document.getElementById('btnSettings').addEventListener('click', () => els.settingsModal.classList.add('open'));
+    document.getElementById('closeSettings').addEventListener('click', () => els.settingsModal.classList.remove('open'));
+    document.getElementById('btnInfo').addEventListener('click', showInfo);
+    document.getElementById('closeInfo').addEventListener('click', () => els.infoModal.classList.remove('open'));
+
+    els.btnAction.addEventListener('click', handleActionClick);
+    els.btnReset.addEventListener('click', fullReset);
+
+    updateUIConfig();
+    loadConfigAndReset();
+  }
+
+  /* === 4. LOGIC === */
+  function updateUIConfig() {
+    els.diffBtns.forEach(b => b.classList.toggle('active', b.dataset.val === currentDifficulty));
+    const isCustom = (currentPresetId === 'custom');
+    els.customConfig.classList.toggle('hidden', !isCustom);
+    document.getElementById('difficultyRow').classList.toggle('hidden', isCustom);
+  }
+
+  function showInfo() {
+    const p = presets.find(x => x.id === currentPresetId);
+    els.infoContent.innerHTML = `<div class="info-badge">${p.info.badge}</div>${p.info.text}`;
+    els.infoModal.classList.add('open');
+  }
+
+  function loadConfigAndReset() {
+    const p = presets.find(x => x.id === currentPresetId);
+    
+    if (currentPresetId === 'custom') {
+      const val = (id) => parseInt(document.getElementById(id).value, 10) || 0;
+      config = {
+        prep: val('c_prep'),
+        work: val('c_work'),
+        rest: val('c_rest'),
+        rounds: val('c_rounds'),
+        cycles: val('c_cycles'),
+        cRest: val('c_crest'),
+        ui: p.ui
+      };
+    } else {
+      const diffData = p.levels ? (p.levels[currentDifficulty] || {}) : {};
+      config = { ...p.base, ...diffData, ui: p.ui };
+    }
+    
+    fullReset();
+  }
+
+  function calcTotal() {
+    const c = config;
+    const cycleTime = (c.rounds * c.work) + ((c.rounds - 1) * c.rest);
+    const allCycles = c.cycles * cycleTime;
+    const allCRests = (c.cycles - 1) * c.cRest;
+    return c.prep + allCycles + allCRests;
+  }
+
+  function formatTime(s) {
+    if (s < 0) s = 0;
+    const m = Math.floor(s / 60);
+    const sc = s % 60;
+    return `${m}:${sc < 10 ? '0' + sc : sc}`;
+  }
+
+  /* === 5. TIMER ENGINE === */
+  function handleActionClick() {
+    if (!audioUnlocked) {
+      Object.values(sounds).forEach(s => { s.volume = 1.0; s.play().catch(()=>{}); s.pause(); s.currentTime = 0; });
+      audioUnlocked = true;
+    }
+
+    if (phase === 'finished') {
+      fullReset();
+      return;
+    }
+
+    if (isRunning) {
+      stopTimer();
+      isPaused = true;
+      els.btnAction.textContent = "POKRAČOVAŤ";
+      els.phaseLbl.textContent = "PAUZA";
+    } else {
+      isRunning = true;
+      isPaused = false;
+      els.btnAction.textContent = "PAUZA";
+      els.btnReset.disabled = false;
+      
+      if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(()=>{});
+
+      if (phase === 'idle') {
+        setPhase('prepare');
+      } else {
+        timerInterval = setInterval(tick, 1000);
+      }
+    }
+  }
+
+  function fullReset() {
+    stopTimer();
+    phase = 'idle';
+    isPaused = false;
+    roundIndex = 1;
+    cycleIndex = 1;
+    countdownPlayed = false;
+    
+    timeLeft = config.prep || 0;
+    maxPhaseTime = config.prep || 0;
+    totalTimeLeft = calcTotal();
+    
+    renderDisplay();
+    els.phaseLbl.textContent = "READY";
+    els.phaseLbl.style.color = "var(--text-muted)";
+    els.instText.textContent = "Stlač Štart.";
+    
+    els.ring.style.strokeDashoffset = 0;
+    els.ring.style.stroke = "var(--text-muted)";
+    document.body.style.setProperty('--shadow-color', 'var(--text-muted)');
+    els.instructionBar.style.borderColor = 'var(--text-muted)';
+    
+    els.btnAction.textContent = "ŠTART";
+    els.btnReset.disabled = true;
+  }
+
+  function stopTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = null;
+    isRunning = false;
+  }
+
+  function setPhase(newPhase) {
+    stopTimer();
+    isRunning = true;
+
+    phase = newPhase;
+    let dur = 0;
+    let color = '';
+    let hint = '';
+    let soundToPlay = null;
+
+    if (newPhase === 'prepare') {
+      dur = config.prep; color = 'var(--color-prepare)'; hint = "Priprav sa!"; soundToPlay = 'prepare';
+    } else if (newPhase === 'work') {
+      dur = config.work; color = 'var(--color-work)'; hint = config.ui.hintWork; soundToPlay = 'phase';
+    } else if (newPhase === 'rest') {
+      dur = config.rest; color = 'var(--color-rest)'; hint = config.ui.hintRest; soundToPlay = 'phase';
+    } else if (newPhase === 'cycleRest') {
+      dur = config.cRest; color = 'var(--color-cycle-rest)'; hint = config.ui.hintCRest; soundToPlay = 'phase';
+    } else if (newPhase === 'finished') {
+      finishWorkout();
+      return;
+    }
+
+    timeLeft = dur;
+    maxPhaseTime = dur;
+    countdownPlayed = false; // nový blok → nový countdown
+
+    document.body.style.setProperty('--shadow-color', color);
+    els.phaseLbl.textContent = newPhase.toUpperCase();
+    els.phaseLbl.style.color = color;
+    els.instructionBar.style.borderColor = color;
+    els.ring.style.stroke = color;
+    els.instText.textContent = hint;
+
+    els.ring.style.transition = 'none';
+    els.ring.style.strokeDashoffset = 0;
+    
+    if (soundToPlay && sounds[soundToPlay]) {
+      sounds[soundToPlay].currentTime = 0;
+      sounds[soundToPlay].play().catch(()=>{});
+    }
+
+    renderDisplay();
+
+    timerInterval = setInterval(tick, 1000);
+    
+    requestAnimationFrame(() => {
+       els.ring.style.transition = 'stroke-dashoffset 1s linear';
+    });
+  }
+
+  function tick() {
+    // COUNTDOWN – spusti len raz, keď zostávajú 3 sekundy
+    if (!countdownPlayed && timeLeft === 3) {
+      countdownPlayed = true;
+      if (sounds.count) {
+        sounds.count.currentTime = 0;
+        sounds.count.play().catch(()=>{});
+      }
+    }
+
+    timeLeft--;
+    totalTimeLeft--;
+    
+    renderDisplay();
+    
+    const max = 816;
+    const ratio = maxPhaseTime > 0 ? (timeLeft / maxPhaseTime) : 0;
+    const offset = max - (ratio * max);
+    els.ring.style.strokeDashoffset = offset;
+
+    if (timeLeft <= 0) {
+      nextPhase();
+    }
+  }
+
+  function nextPhase() {
+    if (phase === 'prepare') {
+      roundIndex = 1; cycleIndex = 1;
+      setPhase('work');
+    } 
+    else if (phase === 'work') {
+      if (roundIndex < config.rounds) {
+        if (config.rest > 0) setPhase('rest');
+        else { roundIndex++; setPhase('work'); }
+      } else {
+        if (cycleIndex < config.cycles) {
+          if (config.cRest > 0) setPhase('cycleRest');
+          else { cycleIndex++; roundIndex = 1; setPhase('work'); }
+        } else {
+          setPhase('finished');
+        }
+      }
+    } 
+    else if (phase === 'rest') {
+      roundIndex++;
+      setPhase('work');
+    } 
+    else if (phase === 'cycleRest') {
+      cycleIndex++;
+      roundIndex = 1;
+      setPhase('work');
+    }
+  }
+
+  function finishWorkout() {
+    stopTimer();
+    phase = 'finished';
+    timeLeft = 0;
+    renderDisplay();
+
+    document.body.style.setProperty('--shadow-color', 'var(--color-rest)');
+    els.phaseLbl.textContent = "HOTOVO";
+    els.instText.textContent = "Tréning hotový.";
+    els.btnAction.textContent = "NOVÝ";
+    
+    if (sounds.finish) {
+      sounds.finish.currentTime = 0;
+      sounds.finish.play().catch(()=>{});
+    }
+  }
+
+  function renderDisplay() {
+    els.time.textContent = formatTime(timeLeft);
+    els.totalTime.textContent = `Total: ${formatTime(totalTimeLeft > 0 ? totalTimeLeft : 0)}`;
+    els.round.textContent = roundIndex;
+    els.roundTot.textContent = config.rounds || 0;
+    els.cycle.textContent = cycleIndex;
+    els.cycleTot.textContent = config.cycles || 0;
+  }
+
+  // Start
+  init();
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function (err) {
+        console.log('SW registration failed:', err);
+      });
+    });
+  }
+</script>
+</body>
+</html>
