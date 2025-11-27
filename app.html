@@ -118,6 +118,7 @@
       font-family: 'JetBrains Mono', monospace; font-size: 4.8rem;
       font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums;
       text-shadow: 0 5px 15px rgba(0,0,0,0.7);
+      display: inline-flex; align-items: center; gap: 8px;
     }
 
     .total-time {
@@ -159,17 +160,41 @@
     }
     .inst-icon { font-size: 1.2rem; }
 
+    /* skip rest button styles (now placed in controls row) */
+    .btn-skip {
+      background: linear-gradient(90deg, rgba(255,255,255,0.03), transparent);
+      border: 1px solid rgba(255,255,255,0.06);
+      color: var(--text-main); padding: 12px 16px; border-radius: 12px; font-weight:800;
+      cursor: pointer; display: inline-flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .btn-skip:active { transform: translateY(1px); }
+    .btn-skip .skip-icon { display: none; font-size:1.2rem; }
+    /* mobile: show icon only */
+    @media (max-width: 520px) {
+      .btn-skip .skip-text { display: none; }
+      .btn-skip .skip-icon { display: inline-block; }
+    }
+
     .controls-area {
       padding: 24px; padding-bottom: max(24px, env(safe-area-inset-bottom));
       width: 100%; display: flex; gap: 12px;
       background: linear-gradient(to top, rgba(0,0,0,0.95) 30%, transparent);
+      align-items: center; justify-content: space-between;
     }
 
     .btn {
-      border: none; padding: 20px; border-radius: 18px;
+      border: none; padding: 14px; border-radius: 14px;
       font-size: 1rem; font-weight: 800; text-transform: uppercase;
       letter-spacing: 1px; cursor: pointer;
-      transition: transform 0.1s, opacity 0.2s;
+      transition: transform 0.12s ease, opacity 0.12s ease, background 0.12s;
+      flex: 1; /* make each control take equal space */
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      /* glass look */
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.06);
+      backdrop-filter: blur(8px) saturate(120%);
+      -webkit-backdrop-filter: blur(8px) saturate(120%);
+      box-shadow: 0 6px 18px rgba(2,6,23,0.6);
     }
     .btn:active { transform: scale(0.97); }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -180,6 +205,39 @@
     }
     .btn-sub {
       flex: 1; background: #1f2228; color: white; border: 1px solid #333;
+    }
+
+    /* keep skip button styles (shows text on desktop, icon on mobile) */
+    .btn-skip {
+      margin-left: auto; background: transparent; border: 1px solid rgba(255,255,255,0.06);
+      color: var(--text-main); padding: 8px 12px; border-radius: 12px; font-weight:800;
+      cursor: pointer; display: inline-flex; align-items:center; gap:8px;
+    }
+    .btn-skip:active { transform: translateX(2px); }
+    .btn-skip .skip-icon { display: none; font-size:1.2rem; }
+    /* mobile: show icon only */
+    @media (max-width: 520px) {
+      .btn-skip { padding: 8px; border-radius: 12px; }
+      .btn-skip .skip-text { display: none; }
+      .btn-skip .skip-icon { display: inline-block; }
+    }
+
+    .btn .btn-icon { display: none; }
+    .btn .btn-text { display: inline-block; }
+
+    /* mobile: show icon-only for controls, text hidden */
+    @media (max-width: 520px) {
+      .btn { padding: 12px; border-radius: 12px; }
+      .btn .btn-text { display: none; }
+      .btn .btn-icon { display: inline-flex; align-items: center; }
+      /* action icon: show play by default, switch to pause when data-state="running" */
+      .action-icon .icon-play { display: inline-block; }
+      .action-icon .icon-pause { display: none; }
+      .btn-main[data-state="running"] .action-icon .icon-play { display: none; }
+      .btn-main[data-state="running"] .action-icon .icon-pause { display: inline-block; }
+      /* ensure skip svg fits and inherits color */
+      .skip-icon svg { width: 18px; height: 18px; }
+      .reset-icon svg { width: 20px; height: 20px; }
     }
 
     .modal {
@@ -220,6 +278,18 @@
       color: white; padding: 14px; border-radius: 12px;
       font-size: 1rem; font-family: 'Manrope', sans-serif; outline: none;
     }
+    /* jemne odsadená poloha šípky v selecte (preset) */
+    #presetSelect {
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8' fill='none'><path d='M1 1l6 6 6-6' stroke='%23888' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+      background-repeat: no-repeat;
+      /* posuň šípku od pravého okraja o ~18px */
+      background-position: calc(100% - 18px) center;
+      padding-right: 44px;
+    }
+    /* skryť natívne expand ikony v IE/Edge */
+    #presetSelect::-ms-expand { display: none; }
     select:focus, input:focus { border-color: var(--color-idle); }
 
     .diff-selector {
@@ -244,6 +314,52 @@
     .info-content p {
       font-size: 0.95rem; line-height: 1.6; color: #ccc; margin-bottom: 14px;
     }
+    /* research links block under each plan info */
+    .research {
+      margin-top: 12px; padding: 10px 12px; border-left: 3px solid rgba(255,255,255,0.04);
+      background: rgba(255,255,255,0.01); border-radius: 8px; margin-bottom: 6px;
+    }
+    .research-title {
+      font-size: 0.85rem; color: var(--text-main); font-weight: 800; margin-bottom: 8px;
+    }
+    .research-links { display: flex; gap: 8px; flex-wrap: wrap; }
+    .research-btn {
+      font-size: 0.78rem; color: #d6e6ff; background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.04); padding: 6px 10px; border-radius: 8px;
+      text-decoration: none; display: inline-block; max-width: 160px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    }
+    /* animations for phase transitions */
+    @keyframes badge-bounce { 0%{transform:translateY(-6px)}50%{transform:translateY(6px)}100%{transform:translateY(0)} }
+    @keyframes ring-pulse { 0%{transform:scale(1)}50%{transform:scale(1.03)}100%{transform:scale(1)} }
+    @keyframes text-jump { 0%{transform:translateY(0)}50%{transform:translateY(-8px)}100%{transform:translateY(0)} }
+    .anim-badge { animation: badge-bounce 320ms cubic-bezier(.2,.9,.3,1); }
+    .anim-ring { animation: ring-pulse 150ms ease; }
+    .anim-text { animation: text-jump 220ms cubic-bezier(.2,.9,.3,1); }
+
+    /* Big Timer mode (full-screen) */
+    .timer-wrapper.big {
+      position: fixed !important; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999;
+      display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.85);
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    .timer-wrapper.big .time-digits { font-size: 12rem !important; }
+  .timer-wrapper.big .phase-badge { transform: translateY(-20px); }
+  /* in big mode show minutes and seconds on separate lines and clamp sizes to viewport */
+  .timer-wrapper.big .time-digits { display:flex; flex-direction:column; gap:6px; }
+  .timer-wrapper.big .time-digits .mins { font-size: clamp(6rem, 22vw, 12rem); }
+  .timer-wrapper.big .time-digits .secs { font-size: clamp(4rem, 14vw, 8rem); }
+  .timer-wrapper.big .time-digits .colon { display:none; }
+  /* normal mode show mins:secs inline */
+  .time-digits .mins { display:inline-block; }
+  .time-digits .secs { display:inline-block; }
+  .time-digits .colon { display:inline-block; }
+    body.big-timer .dashboard, body.big-timer .controls-area, body.big-timer header { opacity: 0.06; pointer-events: none; }
+
+    /* expand button removed — timer is clickable directly */
+
+    /* injury warnings in instruction bar */
+    #injuryWarnings { margin-left: 8px; color: #ffdddd; font-size:0.86rem; display:block; }
+    #injuryWarnings .warn { display:block; margin-top:6px; color: #ffb3b3; font-weight:700; }
     /* malý nenápadný riadok pod kruhom zobrazujúci nasledujúcu fázu */
     .next-phase {
       font-size: 0.75rem;
@@ -288,8 +404,8 @@
       </svg>
       <div class="timer-content">
         <div class="phase-badge" id="phaseLabel">ČAKANIE</div>
-        <div class="time-digits" id="timeDisplay">00:00</div>
-        <div class="total-time" id="totalTimeDisplay">Celkom: 00:00</div>
+  <div class="time-digits" id="timeDisplay"><span class="mins">0</span><span class="colon">:</span><span class="secs">00</span></div>
+  <div class="total-time" id="totalTimeDisplay">Celkom: 00:00</div>
       </div>
     </div>
     <!-- nenápadný riadok pod kruhom (sibling timer-wrapper) -->
@@ -298,7 +414,10 @@
     <div class="dashboard">
       <div class="instruction-bar" id="instructionBar">
         <span class="inst-icon">💡</span>
-        <span id="instructionText">Priprav sa.</span>
+        <div style="display:flex; flex-direction:column; flex:1;">
+          <span id="instructionText">Priprav sa.</span>
+          <div id="injuryWarnings" class="hidden" aria-live="polite"></div>
+        </div>
       </div>
 
       <div class="stats-grid">
@@ -315,8 +434,26 @@
   </main>
 
   <section class="controls-area">
-    <button class="btn btn-sub" id="btnReset" disabled>RESET</button>
-    <button class="btn btn-main" id="btnAction">ŠTART</button>
+    <button class="btn btn-sub" id="btnReset" disabled aria-label="Reset">
+      <span class="btn-icon reset-icon" aria-hidden="true">
+        <!-- simple X icon (close-style) -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </span>
+      <span class="btn-text">RESET</span>
+    </button>
+    <button class="btn btn-main" id="btnAction" aria-label="Štart/Pauza">
+      <span class="btn-icon action-icon" aria-hidden="true">
+        <!-- play icon (default) -->
+        <svg class="icon-play" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        <!-- pause icon -->
+        <svg class="icon-pause" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+      </span>
+      <span class="btn-text">ŠTART</span>
+    </button>
+    <button id="btnSkipRest" class="btn btn-sub btn-skip hidden" aria-hidden="true">
+      <span class="skip-text">Preskočiť fázu</span>
+      <span class="skip-icon">➜</span>
+    </button>
   </section>
 
   <audio id="sndPrepare" src="prepare.mp3" preload="auto"></audio>
@@ -338,7 +475,7 @@
         <label class="setting-label">Úroveň</label>
         <div class="diff-selector">
           <button class="diff-opt" data-val="easy">Ľahká</button>
-          <button class="diff-opt active" data-val="medium">Stredná</button>
+          <button class="diff-opt active" data-val="medium">Normálna</button>
           <button class="diff-opt" data-val="hard">Ťažká</button>
         </div>
       </div>
@@ -377,12 +514,20 @@
       name: 'Warm-up (Rozcvička)',
       info: { 
         badge: 'Prevencia zranení', 
-        text: `<p><strong>V jednoduchosti čo robiť:</strong> Najprv <em>zahrej celé telo</em> (ľahké kardio, mobilita ramien), potom <em>prsty</em> na <em>väčších chytoch alebo lištách</em> – pár ľahkých bouldrov / visov bez pálenia predlaktí. Až potom choď na ťažší <em>hangboard</em> alebo <em>zhyby</em>.</p>
-               <p><strong>Podrobne o tomto tréningu:</strong> Rozcvička má zvýšiť teplotu svalov, prekrvenie predlaktí a pripraviť šľachy prstov na záťaž, aby sa znížilo riziko preťaženia púzdier a úponov. Odporúča sa <em>5–10 min</em> ľahkého pohybu (kardio, mobilita ramien a zápästí), následne postupné visy na väčších chytoch alebo lištách s nízkou intenzitou, kde sa neblížiš k zlyhaniu. Začiatočníci by mali zostať pri tomto druhu visov; stredne pokročilí môžu warm-up použiť ako prechod k intenzívnym protokolom. Celkový počet ťažkých hangboard tréningov za týždeň by nemal presiahnuť <em>1–2</em>.</p>`
+        text: `<p><strong>V jednoduchosti čo robiť:</strong> Krátka príprava <em>5 s</em> (nastavenie, postavenie sa na lištu) a potom <em>5 minút</em> rozcvičky – ľahké kardio, mobilita ramien a zápästí, pár ľahkých visov na veľkých chytoch (bez prepätia predlaktí).</p>
+               <p><strong>Podrobne o tomto tréningu:</strong> Tento warm-up je zámerne jednoduchý: cieľom je zvýšiť teplotu svalov a prekrvenie predlaktí, aktivovať lopatky a pripraviť šľachy prstov na ďalší tréning. Venuj sa ~5 minútam ľahkého pohybu (chod, dynamické pohyby ramien, mobilita zápästí) a vykonaj len veľmi jemné visy alebo krátke bouldrové pohyby bez dosiahnutia pálenia.</p>
+               <div class="research">
+                 <div class="research-title">Výskumy k tomuto plánu:</div>
+                 <div class="research-links">
+                   <a class="research-btn" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11877290" target="_blank" rel="noopener">Warm-up review (PMC11877290)</a>
+                   <a class="research-btn" href="https://www.researchgate.net/publication/340619286_Effects_of_Different_Intensities_of_Warm_up_on_the_Balance_of_Indoor_Climbers" target="_blank" rel="noopener">Warm-up balance study</a>
+                   <a class="research-btn" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10973541/?utm_source=chatgpt.com" target="_blank" rel="noopener">Acute warm-up effects (PMC10973541)</a>
+                 </div>
+               </div>`
       },
-      base: { prep: 5, work: 20, rest: 40, rounds: 4, cycles: 2, cRest: 60 },
-      levels: { easy: { rounds: 3, cycles: 1 }, medium: {}, hard: { rounds: 5 } },
-      ui: { hintWork: 'Ľahký vis / pohyb', hintRest: 'Krúženie ramenami', hintCRest: 'Kontrola: Si zahriaty?' }
+      base: { prep: 5, work: 300, rest: 0, rounds: 1, cycles: 1, cRest: 0 },
+      levels: { easy: {}, medium: {}, hard: {} },
+      ui: { hintWork: 'Rozcvička', hintRest: 'Voľný pohyb', hintCRest: '' }
     },
     {
       id: 'hang-max',
@@ -390,7 +535,15 @@
       info: {
         badge: 'Neuromuskulárna Sila',
         text: `<p><strong>V jednoduchosti čo robiť:</strong> Vyber si pohodlnú lištu, na ktorej udržíš vis okolo <em>10–12 s</em> s veľkým úsilím. Visíš krátko, takmer na maximum, potom dlho oddychuješ (<em>3–5 minút</em>). Robíš málo kvalitných visov, nie veľa objemu.</p>
-               <p><strong>Podrobne o tomto tréningu:</strong> Max hangs cielia na maximálnu silu úchopu. Intenzita je približne <em>90–100 %</em> tvojho maxima: 5–10 s visy s pridanou váhou alebo na menšej lište, vždy ukončené tesne pred zlyhaním. Dlhé pauzy <em>3–5 minút</em> medzi vismi a sériami umožnia plné doplnenie ATP‑CP systému a podporujú neurálne adaptácie (zvýšenie rekrutácie svalových vlákien). 4–8 týždňov takéhoto tréningu <em>1–2× týždenne</em> vedie k významnému nárastu maximálnej sily prstov.</p>`
+               <p><strong>Podrobne o tomto tréningu:</strong> Max hangs cielia na maximálnu silu úchopu. Intenzita je približne <em>90–100 %</em> tvojho maxima: 5–10 s visy s pridanou váhou alebo na menšej lište, vždy ukončené tesne pred zlyhaním. Dlhé pauzy <em>3–5 minút</em> medzi vismi a sériami umožnia plné doplnenie ATP‑CP systému a podporujú neurálne adaptácie (zvýšenie rekrutácie svalových vlákien). 4–8 týždňov takéhoto tréningu <em>1–2× týždenne</em> vedie k významnému nárastu maximálnej sily prstov.</p>
+               <div class="research">
+                 <div class="research-title">Výskumy k tomuto plánu:</div>
+                 <div class="research-links">
+                   <a class="research-btn" href="https://www.frontiersin.org/journals/sports-and-active-living/articles/10.3389/fspor.2022.862782/full" target="_blank" rel="noopener">Frontiers 2022</a>
+                   <a class="research-btn" href="https://pubmed.ncbi.nlm.nih.gov/39560837/" target="_blank" rel="noopener">Effects of loading</a>
+                   <a class="research-btn" href="https://www.nature.com/articles/s41598-021-92898-2?error=cookies_not_supported&code=308f5fbb-ab2e-472d-997e-84b7a283367d" target="_blank" rel="noopener">Hangboard RCT</a>
+                 </div>
+               </div>`
       },
       base: { prep: 5, work: 10, rest: 180, rounds: 5, cycles: 2, cRest: 300 },
       levels: { easy: { rounds: 3, cycles: 1 }, medium: {}, hard: { rounds: 6, rest: 150 } },
@@ -402,7 +555,15 @@
       info: {
         badge: 'Silová Vytrvalosť',
         text: `<p><strong>V jednoduchosti čo robiť:</strong> Visíš <em>7 s</em>, <em>3 s</em> krátky odpočinok a takto <em>6×</em> na tom istom úchope. Potom <em>3 min</em> pauza a ďalšia séria. Záťaž nastav tak, aby posledné visy už výrazne pálili, ale ich ešte dokončíš.</p>
-               <p><strong>Podrobne o tomto tréningu:</strong> Repeaters 7/3 sú intervalový protokol zameraný na lokálnu vytrvalosť predlaktí a toleranciu „pumpy“. Striedanie <em>7 s</em> práce a <em>3 s</em> odpočinku vytvára vysoký metabolický stres a čiastočnú hypoxiu, čím sa zvyšuje kapilarizácia a aeróbna kapacita svalov. Pri <em>2 tréningoch/týždeň</em> počas 4–8 týždňov môže tento protokol výrazne zlepšiť čas do vyčerpania a vytrvalosť.</p>`
+               <p><strong>Podrobne o tomto tréningu:</strong> Repeaters 7/3 sú intervalový protokol zameraný na lokálnu vytrvalosť predlaktí a toleranciu „pumpy“. Striedanie <em>7 s</em> práce a <em>3 s</em> odpočinku vytvára vysoký metabolický stres a čiastočnú hypoxiu, čím sa zvyšuje kapilarizácia a aeróbna kapacita svalov. Pri <em>2 tréningoch/týždeň</em> počas 4–8 týždňov môže tento protokol výrazne zlepšiť čas do vyčerpania a vytrvalosť.</p>
+               <div class="research">
+                 <div class="research-title">Výskumy k tomuto plánu:</div>
+                 <div class="research-links">
+                   <a class="research-btn" href="https://pubmed.ncbi.nlm.nih.gov/30988852/" target="_blank" rel="noopener">Repeaters study</a>
+                   <a class="research-btn" href="https://trainingforclimbing.com/4-fingerboard-strength-protocols-that-work/" target="_blank" rel="noopener">Fingerboard protokoly</a>
+                   <a class="research-btn" href="https://www.frontiersin.org/journals/sports-and-active-living/articles/10.3389/fspor.2022.862782/full" target="_blank" rel="noopener">Frontiers 2022</a>
+                 </div>
+               </div>`
       },
       base: { prep: 5, work: 7, rest: 3, rounds: 6, cycles: 3, cRest: 180 },
       levels: { easy: { cycles: 2 }, medium: {}, hard: { cycles: 4 } },
@@ -414,7 +575,15 @@
       info: {
         badge: 'Ťahová Sila',
         text: `<p><strong>V jednoduchosti čo robiť:</strong> Ak zvládneš ≥ <em>10–12</em> čistých zhybov s vlastnou váhou, pridaj ~<em>10–20 %</em> hmotnosti (vesta alebo kotúč). Rob <em>2–4 série</em> po <em>4–6</em> technických zhyboch, medzi sériami odpočívaj <em>2–3 min</em>.</p>
-               <p><strong>Podrobne o tomto tréningu:</strong> Ťažké zhyby s pridanou záťažou rozvíjajú maximálnu ťahovú silu (lat, biceps, stabilizátory ramena). Protokol je silový: nízky počet opakovaní pri vysokej intenzite, s dostatočnými prestávkami (<em>2–3 min</em>) pre zachovanie kvality a zníženie kumulatívneho preťaženia lakťov.</p>`
+               <p><strong>Podrobne o tomto tréningu:</strong> Ťažké zhyby s pridanou záťažou rozvíjajú maximálnu ťahovú silu (lat, biceps, stabilizátory ramena). Protokol je silový: nízky počet opakovaní pri vysokej intenzite, s dostatočnými prestávkami (<em>2–3 min</em>) pre zachovanie kvality a zníženie kumulatívneho preťaženia lakťov.</p>
+               <div class="research">
+                 <div class="research-title">Výskumy k tomuto plánu:</div>
+                 <div class="research-links">
+                   <a class="research-btn" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10540777/" target="_blank" rel="noopener">Pull-up study</a>
+                   <a class="research-btn" href="https://www.trainingbeta.com/eric-horst-4-pull-variations/" target="_blank" rel="noopener">Eric Hörst</a>
+                   <a class="research-btn" href="https://www.climbing.com/skills/do-pull-ups-help-climbing/?scope=anon" target="_blank" rel="noopener">Climbing article</a>
+                 </div>
+               </div>`
       },
       base: { prep: 10, work: 30, rest: 150, rounds: 5, cycles: 1, cRest: 0 },
       levels: { easy: { rounds: 3 }, medium: {}, hard: { rounds: 6 } },
@@ -426,7 +595,15 @@
       info: {
         badge: 'Kapacita',
         text: `<p><strong>V jednoduchosti čo robiť:</strong> Nastav <em>1-min interval</em>. Na začiatku každej minúty urob dohodnutý počet zhybov (napr. <em>3–5</em>), zvyšok minúty oddychuj. Pokračuj <em>10–20 min</em> podľa úrovne; ak nevieš dokončiť, zníž počet zhybov.</p>
-               <p><strong>Podrobne o tomto tréningu:</strong> EMOM tréning zhybov buduje pracovnú kapacitu a odolnosť voči únave. Kumulatívny objem po 10–20 minútach môže dosiahnuť <em>50–100</em> opakovaní. Intenzita jednej série nie je maximálna, ale únava sa postupne nabaľuje, čím sa zvyšuje metabolický stres a odolnosť.</p>`
+               <p><strong>Podrobne o tomto tréningu:</strong> EMOM tréning zhybov buduje pracovnú kapacitu a odolnosť voči únave. Kumulatívny objem po 10–20 minútach môže dosiahnuť <em>50–100</em> opakovaní. Intenzita jednej série nie je maximálna, ale únava sa postupne nabaľuje, čím sa zvyšuje metabolický stres a odolnosť.</p>
+               <div class="research">
+                 <div class="research-title">Výskumy k tomuto plánu:</div>
+                 <div class="research-links">
+                   <a class="research-btn" href="https://www.trainingbeta.com/eric-horst-4-pull-variations/" target="_blank" rel="noopener">Eric Hörst</a>
+                   <a class="research-btn" href="https://www.climbing.com/skills/do-pull-ups-help-climbing/?scope=anon" target="_blank" rel="noopener">Climbing article</a>
+                   <a class="research-btn" href="https://link.springer.com/article/10.1186/s40798-024-00677-w" target="_blank" rel="noopener">SportsMed review</a>
+                 </div>
+               </div>`
       },
       base: { prep: 10, work: 15, rest: 45, rounds: 10, cycles: 1, cRest: 0 },
       levels: { easy: { rounds: 6 }, medium: {}, hard: { rounds: 12 } },
@@ -438,7 +615,15 @@
       info: {
         badge: 'Lock-off Sila',
         text: `<p><strong>V jednoduchosti čo robiť:</strong> Spravíš zhyb hore a podržíš bradu nad hrazdou <em>4 s</em>, potom sa spustíš do <em>90°</em> v lakťoch a držíš <em>4 s</em>, nakoniec do ≈<em>120°</em> a opäť <em>4 s</em>. To je jeden cyklus; bez pauzy sprav 2–3 cykly, potom <em>5 min</em> odpočinku a zopakuj 1–2 série.</p>
-               <p><strong>Podrobne o tomto tréningu:</strong> Frenchies kombinujú koncentrické zhyby s izometrickými výdržami v troch kľúčových uhloch lakťa (plný zhyb, <em>90°</em>, <em>120°</em>). Rozvíjajú lock‑off silu a miestnu vytrvalosť; pre tento protokol odporúčané max <em>1–2× týždenne</em> s dôrazom na techniku a kontrolu pohybu.</p>`
+               <p><strong>Podrobne o tomto tréningu:</strong> Frenchies kombinujú koncentrické zhyby s izometrickými výdržami v troch kľúčových uhloch lakťa (plný zhyb, <em>90°</em>, <em>120°</em>). Rozvíjajú lock‑off silu a miestnu vytrvalosť; pre tento protokol odporúčané max <em>1–2× týždenne</em> s dôrazom na techniku a kontrolu pohybu.</p>
+               <div class="research">
+                 <div class="research-title">Výskumy k tomuto plánu:</div>
+                 <div class="research-links">
+                   <a class="research-btn" href="https://www.trainingbeta.com/eric-horst-4-pull-variations/" target="_blank" rel="noopener">Eric Hörst</a>
+                   <a class="research-btn" href="https://www.climbing.com/skills/do-pull-ups-help-climbing/?scope=anon" target="_blank" rel="noopener">Climbing article</a>
+                   <a class="research-btn" href="https://pubmed.ncbi.nlm.nih.gov/28945641/" target="_blank" rel="noopener">4‑week RFD study</a>
+                 </div>
+               </div>`
       },
       base: { prep: 5, work: 45, rest: 240, rounds: 3, cycles: 1, cRest: 0 },
       levels: { easy: { rounds: 2 }, medium: {}, hard: { rounds: 4 } },
@@ -449,8 +634,16 @@
       name: 'Vlastný plán',
       info: { 
         badge: 'Custom', 
-        text: `<p><strong>V jednoduchosti čo robiť:</strong> Vyber si cieľ (<em>sila prstov, vytrvalosť, ťahová sila</em>) a nastav časy tak, aby „work“ fáza bola buď krátka a veľmi intenzívna, alebo dlhšia a stredne ťažká. Počet opakovaní a sérií prispôsob podľa únavy a časových možností.</p>
-               <p><strong>Podrobne o tomto tréningu:</strong> Vlastný plán ti umožní skombinovať princípy z max hangs, repeaterov a zhybových protokolov. Pri silových cieľoch vol krátke visy alebo nízky počet ťažkých zhybov s dlhými prestávkami; pri vytrvalostných cieľoch zvoľ dlhšie série s kratšími pauzami. Celkový počet náročných tréningových dní by nemal presiahnuť približne <em>4/týždeň</em>.</p>`
+        text: `<p><strong>V jednoduchosti čo robiť:</strong> Vyber si cieľ (<em>sila prstov, vytrvalosť, ťahová sila</em>) a nastav časy tak, aby „work“ fáza bola buď krátka a veľmi intenzívna, alebo dlhšia a stredne ťažká. Počet opakovania a sérií prispôsob podľa únavy a časových možností.</p>
+               <p><strong>Podrobne o tomto tréningu:</strong> Vlastný plán ti umožní skombinovať princípy z max hangs, repeaterov a zhybových protokolov. Pri silových cieľoch vol krátke visy alebo nízky počet ťažkých zhybov s dlhými prestávkami; pri vytrvalostných cieľoch zvoľ dlhšie série s kratšími pauzami. Celkový počet náročných tréningových dní by nemal presiahnuť približne <em>4/týždeň</em>.</p>
+               <div class="research">
+                 <div class="research-title">Výskumy k tomuto plánu:</div>
+                 <div class="research-links">
+                   <a class="research-btn" href="https://www.frontiersin.org/journals/sports-and-active-living/articles/10.3389/fspor.2022.862782/full" target="_blank" rel="noopener">Frontiers 2022</a>
+                   <a class="research-btn" href="https://www.nature.com/articles/s41598-021-92898-2?error=cookies_not_supported&code=308f5fbb-ab2e-472d-997e-84b7a283367d" target="_blank" rel="noopener">Hangboard RCT</a>
+                   <a class="research-btn" href="https://pubmed.ncbi.nlm.nih.gov/30988852/" target="_blank" rel="noopener">Grip endurance RCT</a>
+                 </div>
+               </div>`
       },
       base: { prep: 5, work: 10, rest: 30, rounds: 5, cycles: 2, cRest: 120 },
       levels: null,
@@ -462,7 +655,7 @@
   const els = {
     ring: document.getElementById('ringProgress'),
     glow: document.getElementById('glowBackdrop'),
-    time: document.getElementById('timeDisplay'),
+  time: document.getElementById('timeDisplay'),
     totalTime: document.getElementById('totalTimeDisplay'),
     phaseLbl: document.getElementById('phaseLabel'),
     instText: document.getElementById('instructionText'),
@@ -470,8 +663,9 @@
     roundTot: document.getElementById('roundTot'),
     cycle: document.getElementById('cycleCurr'),
     cycleTot: document.getElementById('cycleTot'),
-    btnAction: document.getElementById('btnAction'),
+  btnAction: document.getElementById('btnAction'),
     btnReset: document.getElementById('btnReset'),
+    btnSkipRest: document.getElementById('btnSkipRest'),
     settingsModal: document.getElementById('settingsModal'),
     infoModal: document.getElementById('infoModal'),
     infoContent: document.getElementById('infoContent'),
@@ -479,8 +673,31 @@
     diffBtns: document.querySelectorAll('.diff-opt'),
     customConfig: document.getElementById('customConfig'),
     instructionBar: document.getElementById('instructionBar'),
-    nextPhase: document.getElementById('nextPhaseInfo')
+    nextPhase: document.getElementById('nextPhaseInfo'),
+    timerWrapper: document.querySelector('.timer-wrapper'),
+    injuryWarnings: document.getElementById('injuryWarnings')
   };
+
+  function setActionLabel(label, state = 'idle') {
+    const btn = els.btnAction;
+    if (!btn) return;
+    const textEl = btn.querySelector('.btn-text');
+    if (textEl) textEl.textContent = label;
+    btn.setAttribute('data-state', state);
+  }
+
+  function getPresetShortName(id) {
+    switch (id) {
+      case 'warmup': return 'Rozcvička';
+      case 'hang-max': return 'Max Hangs';
+      case 'hang-repeaters': return 'Repeaters 713';
+      case 'pull-strength': return 'Weighted Pull-ups';
+      case 'pull-emom': return 'EMOM Pull-ups';
+      case 'frenchies': return 'Frenchies';
+      case 'custom': return 'Vlastný plán';
+      default: return 'Pripravený?';
+    }
+  }
 
   let currentPresetId = 'warmup';
   let currentDifficulty = 'medium';
@@ -500,6 +717,10 @@
 
   // flag aby countdown.mp3 hral len raz v danej fáze
   let countdownPlayed = false;
+
+  // haptics (vibration) support
+  let hapticsEnabled = true; // default enabled on devices that support it
+
 
   const sounds = {
     prepare: document.getElementById('sndPrepare'),
@@ -558,9 +779,31 @@
         els.infoModal.classList.remove('open');
       }
     });
+    // to isté pre settings modal — kliknutím mimo obsahu sa modal zavrie
+    els.settingsModal.addEventListener('click', (e) => {
+      if (e.target === els.settingsModal) {
+        els.settingsModal.classList.remove('open');
+      }
+    });
 
     els.btnAction.addEventListener('click', handleActionClick);
     els.btnReset.addEventListener('click', fullReset);
+
+    // big timer: clicking the timer-wrapper toggles fullscreen mode; ESC closes
+    if (els.timerWrapper) {
+      els.timerWrapper.addEventListener('click', (ev) => {
+        const interactive = ev.target.closest('button, a, input, select, textarea');
+        if (interactive) return;
+        toggleBigTimer();
+      });
+    }
+    // skip phase button wiring (will skip current phase)
+    if (els.btnSkipRest) {
+      els.btnSkipRest.addEventListener('click', (ev) => { ev.stopPropagation(); skipPhase(); });
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.body.classList.contains('big-timer')) closeBigTimer();
+    });
 
     updateUIConfig();
     loadConfigAndReset();
@@ -600,6 +843,9 @@
     }
     
     fullReset();
+    // update injury warnings visibility after loading a new preset/config
+    try { showInjuryWarningsIfNeeded(phase); } catch (e) {}
+    try { updateSkipPhaseButton(phase); } catch (e) {}
   }
 
   function calcTotal() {
@@ -632,12 +878,12 @@
     if (isRunning) {
       stopTimer();
       isPaused = true;
-      els.btnAction.textContent = "POKRAČOVAŤ";
+      setActionLabel("POKRAČOVAŤ", 'idle');
       els.phaseLbl.textContent = "PAUZA";
     } else {
       isRunning = true;
       isPaused = false;
-      els.btnAction.textContent = "PAUZA";
+      setActionLabel("PAUZA", 'running');
       els.btnReset.disabled = false;
       
       if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(()=>{});
@@ -663,7 +909,8 @@
     totalTimeLeft = calcTotal();
     
     renderDisplay();
-    els.phaseLbl.textContent = phaseLabels['prepare'] ? 'PRIPRAVENÝ?' : 'PRIPRAVENÝ?';
+  // show plan name when idle (pre-start) instead of generic 'PRIPRAVENÝ ?'
+  els.phaseLbl.textContent = getPresetShortName(currentPresetId);
     els.phaseLbl.style.color = "var(--text-muted)";
     els.instText.textContent = "Stlač Štart.";
     
@@ -672,8 +919,9 @@
     document.body.style.setProperty('--shadow-color', 'var(--text-muted)');
     els.instructionBar.style.borderColor = 'var(--text-muted)';
     
-    els.btnAction.textContent = "ŠTART";
+  setActionLabel("ŠTART", 'idle');
     els.btnReset.disabled = true;
+    try { updateSkipPhaseButton('idle'); } catch (e) {}
   }
 
   function stopTimer() {
@@ -682,7 +930,7 @@
     isRunning = false;
   }
 
-  function setPhase(newPhase) {
+  function setPhase(newPhase, opts = {}) {
     stopTimer();
     isRunning = true;
 
@@ -719,7 +967,7 @@
     els.ring.style.transition = 'none';
     els.ring.style.strokeDashoffset = 0;
     
-    if (soundToPlay && sounds[soundToPlay]) {
+    if (!opts.noSound && soundToPlay && sounds[soundToPlay]) {
       sounds[soundToPlay].currentTime = 0;
       sounds[soundToPlay].play().catch(()=>{});
     }
@@ -731,6 +979,11 @@
     requestAnimationFrame(() => {
        els.ring.style.transition = 'stroke-dashoffset 1s linear';
     });
+    // haptics, animations and warnings triggered on phase start
+    try { triggerHaptics(newPhase); } catch(e){}
+    try { triggerPhaseAnimations(); } catch(e){}
+    try { showInjuryWarningsIfNeeded(newPhase); } catch(e){}
+    try { updateSkipPhaseButton(newPhase); } catch(e){}
   }
 
   function tick() {
@@ -792,12 +1045,17 @@
     phase = 'finished';
     timeLeft = 0;
     renderDisplay();
+    // set finished visuals (green)
+    const finishedColor = getComputedStyle(document.documentElement).getPropertyValue('--color-rest').trim() || '#10b981';
+    document.body.style.setProperty('--shadow-color', finishedColor);
+    if (els.glow) els.glow.style.background = finishedColor;
+    if (els.ring) els.ring.style.stroke = finishedColor;
+    if (els.instructionBar) els.instructionBar.style.borderColor = finishedColor;
 
-    document.body.style.setProperty('--shadow-color', 'var(--color-rest)');
     els.phaseLbl.textContent = "HOTOVO";
     els.instText.textContent = "Tréning hotový.";
-    els.btnAction.textContent = "NOVÝ";
-    
+    setActionLabel("NOVÝ", 'idle');
+
     if (sounds.finish) {
       sounds.finish.currentTime = 0;
       sounds.finish.play().catch(()=>{});
@@ -841,7 +1099,18 @@
   }
 
   function renderDisplay() {
-    els.time.textContent = formatTime(timeLeft);
+    // render minutes and seconds separately so big-timer can stack them
+    const mins = Math.floor(timeLeft / 60);
+    const secs = timeLeft % 60;
+    const minEl = els.time.querySelector('.mins');
+    const secEl = els.time.querySelector('.secs');
+    if (minEl) {
+      // In Big Timer mode show minutes with two digits (pad with leading zero)
+      let minsStr = String(mins);
+      if (document.body.classList.contains('big-timer')) minsStr = minsStr.padStart(2, '0');
+      minEl.textContent = minsStr;
+    }
+    if (secEl) secEl.textContent = secs < 10 ? '0' + secs : secs;
     els.totalTime.textContent = `Celkom: ${formatTime(totalTimeLeft > 0 ? totalTimeLeft : 0)}`;
     els.round.textContent = roundIndex;
     els.roundTot.textContent = config.rounds || 0;
@@ -849,6 +1118,142 @@
     els.cycleTot.textContent = config.cycles || 0;
     updateNextPhaseInfo();
   }
+
+  /* === HAPTICS (VIBRATION) === */
+  function triggerHaptics(phaseName) {
+    try {
+      if (!hapticsEnabled) return;
+      if (!('vibrate' in navigator)) return; // not supported
+
+      // simple patterns: values are ms; arrays = on/off sequence
+      if (phaseName === 'prepare') {
+        // short gentle buzz
+        navigator.vibrate(40);
+      } else if (phaseName === 'work') {
+        // double short buzz to indicate start of work
+        navigator.vibrate([60, 80, 60]);
+      } else if (phaseName === 'rest') {
+        // longer single vibration for rest
+        navigator.vibrate(220);
+      } else if (phaseName === 'cycleRest') {
+        navigator.vibrate(160);
+      } else if (phaseName === 'finished') {
+        navigator.vibrate([100,40,100]);
+      }
+    } catch (e) {
+      // fail silently if vibration call errors
+      console.warn('Haptics error', e);
+    }
+  }
+
+  /* === INJURY WARNINGS (for Max Hangs) === */
+  function showInjuryWarningsIfNeeded(phaseName) {
+    try {
+      const el = els.injuryWarnings;
+      if (!el) return;
+
+      // Show warnings only for the Max Hangs preset during the REST phase
+      if (currentPresetId === 'hang-max' && (phaseName === 'rest')) {
+        el.innerHTML = `
+          <span class="warn">⚠ Nepoužívaj full-crimp pri veľkej záťaži.</span>
+          <span class="warn">⚠ Ak cítiš pichnutie prste, okamžite prestaň!</span>
+          <span class="warn">⚠ Vždy pred tréningom 30 s aktivácie extenzorov.</span>
+        `;
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+        el.innerHTML = '';
+      }
+    } catch (e) {
+      console.warn('Injury warnings error', e);
+    }
+  }
+
+  function updateSkipPhaseButton(phaseName) {
+    try {
+      const b = els.btnSkipRest;
+      if (!b) return;
+      // show during any active phase except before start (idle) and after finished
+      if (phaseName && phaseName !== 'idle' && phaseName !== 'finished') {
+        b.classList.remove('hidden');
+        b.setAttribute('aria-hidden', 'false');
+      } else {
+        b.classList.add('hidden');
+        b.setAttribute('aria-hidden', 'true');
+      }
+    } catch (e) { console.warn('skip button error', e); }
+  }
+
+  function skipPhase() {
+    // Do nothing if there's no active phase to skip
+    if (!phase || phase === 'idle' || phase === 'finished') return;
+
+    // Deduct the remaining time of the current phase from the total time
+    try {
+      const remaining = typeof timeLeft === 'number' ? timeLeft : 0;
+      totalTimeLeft = Math.max(0, (typeof totalTimeLeft === 'number' ? totalTimeLeft : 0) - remaining);
+    } catch (e) { /* ignore */ }
+
+    // Suppress sounds when skipping
+    const noSoundOpts = { noSound: true };
+
+    if (phase === 'prepare') {
+      // skip preparation -> start work
+      setPhase('work', noSoundOpts);
+      return;
+    }
+
+    if (phase === 'work') {
+      // mimic end-of-work behavior
+      if (roundIndex < config.rounds) {
+        if (config.rest > 0) return setPhase('rest', noSoundOpts);
+        roundIndex++;
+        return setPhase('work', noSoundOpts);
+      } else {
+        if (cycleIndex < config.cycles) {
+          if (config.cRest > 0) return setPhase('cycleRest', noSoundOpts);
+          cycleIndex++; roundIndex = 1;
+          return setPhase('work', noSoundOpts);
+        } else {
+          return setPhase('finished', noSoundOpts);
+        }
+      }
+    }
+
+    if (phase === 'rest') {
+      // same as finishing rest
+      roundIndex++;
+      return setPhase('work', noSoundOpts);
+    }
+
+    if (phase === 'cycleRest') {
+      cycleIndex++;
+      roundIndex = 1;
+      return setPhase('work', noSoundOpts);
+    }
+  }
+
+  /* === BIG TIMER (fullscreen) === */
+  function toggleBigTimer() {
+    try {
+      const isNow = !document.body.classList.contains('big-timer');
+      document.body.classList.toggle('big-timer', isNow);
+      if (els.timerWrapper) els.timerWrapper.classList.toggle('big', isNow);
+      // when entering big-timer, ensure focus and prevent accidental gestures
+      if (isNow) {
+        // optional: try to keep screen awake if available
+        if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(()=>{});
+      }
+    } catch (e) { console.warn('Big timer toggle error', e); }
+  }
+
+  function closeBigTimer() {
+    try {
+      document.body.classList.remove('big-timer');
+      if (els.timerWrapper) els.timerWrapper.classList.remove('big');
+    } catch (e) { console.warn('Close big timer error', e); }
+  }
+
 
   // Start
   init();
