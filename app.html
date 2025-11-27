@@ -252,13 +252,13 @@
   <header>
     <div class="brand">
       <h1>Climb Timer</h1>
-      <span class="subtitle">FOCUS & POWER</span>
+      <span class="subtitle">HANGBOARDING &amp; ZHYBY</span>
     </div>
     <div style="display:flex; gap:10px;">
-      <button class="icon-btn" id="btnInfo" title="Info">
+      <button class="icon-btn" id="btnInfo" title="Informácie">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
       </button>
-      <button class="icon-btn" id="btnSettings" title="Setup">
+      <button class="icon-btn" id="btnSettings" title="Nastavenie">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
       </button>
     </div>
@@ -272,9 +272,9 @@
         <circle class="ring-val" id="ringProgress" cx="150" cy="150" r="130"></circle>
       </svg>
       <div class="timer-content">
-        <div class="phase-badge" id="phaseLabel">IDLE</div>
+        <div class="phase-badge" id="phaseLabel">ČAKANIE</div>
         <div class="time-digits" id="timeDisplay">00:00</div>
-        <div class="total-time" id="totalTimeDisplay">Total: 00:00</div>
+        <div class="total-time" id="totalTimeDisplay">Celkom: 00:00</div>
       </div>
     </div>
 
@@ -320,23 +320,23 @@
       <div class="setting-row" id="difficultyRow">
         <label class="setting-label">Úroveň</label>
         <div class="diff-selector">
-          <button class="diff-opt" data-val="easy">Easy</button>
-          <button class="diff-opt active" data-val="medium">Medium</button>
-          <button class="diff-opt" data-val="hard">Hard</button>
+          <button class="diff-opt" data-val="easy">Ľahká</button>
+          <button class="diff-opt active" data-val="medium">Stredná</button>
+          <button class="diff-opt" data-val="hard">Ťažká</button>
         </div>
       </div>
       <div id="customConfig" class="hidden">
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-          <div><label class="setting-label">Prepare (s)</label><input type="number" id="c_prep" value="5"></div>
-          <div><label class="setting-label">Work (s)</label><input type="number" id="c_work" value="10"></div>
+          <div><label class="setting-label">Príprava (s)</label><input type="number" id="c_prep" value="5"></div>
+          <div><label class="setting-label">Cvičenie (s)</label><input type="number" id="c_work" value="10"></div>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-          <div><label class="setting-label">Rest (s)</label><input type="number" id="c_rest" value="5"></div>
-          <div><label class="setting-label">Rounds</label><input type="number" id="c_rounds" value="6"></div>
+          <div><label class="setting-label">Oddych (s)</label><input type="number" id="c_rest" value="5"></div>
+          <div><label class="setting-label">Opakovania</label><input type="number" id="c_rounds" value="6"></div>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-          <div><label class="setting-label">Cycles</label><input type="number" id="c_cycles" value="3"></div>
-          <div><label class="setting-label">Cycle Rest (s)</label><input type="number" id="c_crest" value="180"></div>
+          <div><label class="setting-label">Série</label><input type="number" id="c_cycles" value="3"></div>
+          <div><label class="setting-label">Oddych medzi sériami (s)</label><input type="number" id="c_crest" value="180"></div>
         </div>
       </div>
     </div>
@@ -360,7 +360,8 @@
       name: 'Warm-up (Rozcvička)',
       info: { 
         badge: 'Prevencia zranení', 
-        text: `<p><strong>Prečo:</strong> Príprava tkanív na záťaž. Zvyšuje teplotu svalov a viskozitu v kĺboch.</p><p><strong>Ako:</strong> Začni na veľkých chytoch, postupne zmenšuj. Ľahké visy a zhyby.</p>`
+        text: `<p><strong>V jednoduchosti čo robiť:</strong> Najprv <em>zahrej celé telo</em> (ľahké kardio, mobilita ramien), potom <em>prsty</em> na <em>väčších chytoch alebo lištách</em> – pár ľahkých bouldrov / visov bez pálenia predlaktí. Až potom choď na ťažší <em>hangboard</em> alebo <em>zhyby</em>.</p>
+               <p><strong>Podrobne o tomto tréningu:</strong> Rozcvička má zvýšiť teplotu svalov, prekrvenie predlaktí a pripraviť šľachy prstov na záťaž, aby sa znížilo riziko preťaženia púzdier a úponov. Odporúča sa <em>5–10 min</em> ľahkého pohybu (kardio, mobilita ramien a zápästí), následne postupné visy na väčších chytoch alebo lištách s nízkou intenzitou, kde sa neblížiš k zlyhaniu. Začiatočníci by mali zostať pri tomto druhu visov; stredne pokročilí môžu warm-up použiť ako prechod k intenzívnym protokolom. Celkový počet ťažkých hangboard tréningov za týždeň by nemal presiahnuť <em>1–2</em>.</p>`
       },
       base: { prep: 5, work: 20, rest: 40, rounds: 4, cycles: 2, cRest: 60 },
       levels: { easy: { rounds: 3, cycles: 1 }, medium: {}, hard: { rounds: 5 } },
@@ -368,14 +369,11 @@
     },
     {
       id: 'hang-max',
-      name: 'Max Hangs (Sila)',
+      name: 'Max Hangs (Sila prstov)',
       info: {
         badge: 'Neuromuskulárna Sila',
-        text: `
-          <p><strong>Pôvod:</strong> Protokol typu Eva López.</p>
-          <p><strong>Mechanizmus:</strong> Krátke visy (10s) na 90–100 % maxima s dlhým odpočinkom (3 min+).</p>
-          <p><strong>Prečo to funguje:</strong> Aktivuje nervovú sústavu bez veľkej „pumpy“, zvyšuje max silu bez veľkého nárastu hmoty.</p>
-        `
+        text: `<p><strong>V jednoduchosti čo robiť:</strong> Vyber si pohodlnú lištu, na ktorej udržíš vis okolo <em>10–12 s</em> s veľkým úsilím. Visíš krátko, takmer na maximum, potom dlho oddychuješ (<em>3–5 minút</em>). Robíš málo kvalitných visov, nie veľa objemu.</p>
+               <p><strong>Podrobne o tomto tréningu:</strong> Max hangs cielia na maximálnu silu úchopu. Intenzita je približne <em>90–100 %</em> tvojho maxima: 5–10 s visy s pridanou váhou alebo na menšej lište, vždy ukončené tesne pred zlyhaním. Dlhé pauzy <em>3–5 minút</em> medzi vismi a sériami umožnia plné doplnenie ATP‑CP systému a podporujú neurálne adaptácie (zvýšenie rekrutácie svalových vlákien). 4–8 týždňov takéhoto tréningu <em>1–2× týždenne</em> vedie k významnému nárastu maximálnej sily prstov.</p>`
       },
       base: { prep: 5, work: 10, rest: 180, rounds: 5, cycles: 2, cRest: 300 },
       levels: { easy: { rounds: 3, cycles: 1 }, medium: {}, hard: { rounds: 6, rest: 150 } },
@@ -383,13 +381,11 @@
     },
     {
       id: 'hang-repeaters',
-      name: 'Repeaters 7/3 (Vytrvalosť)',
+      name: 'Repeaters 7/3 (Vytrvalosť prstov)',
       info: {
         badge: 'Silová Vytrvalosť',
-        text: `
-          <p><strong>Mechanizmus:</strong> 7 s vis / 3 s pauza vytvára lokálnu únavu a „pumpu“.</p>
-          <p><strong>Prečo to funguje:</strong> Zlepšuje toleranciu na zakyslenie a cievne zásobenie predlaktí.</p>
-        `
+        text: `<p><strong>V jednoduchosti čo robiť:</strong> Visíš <em>7 s</em>, <em>3 s</em> krátky odpočinok a takto <em>6×</em> na tom istom úchope. Potom <em>3 min</em> pauza a ďalšia séria. Záťaž nastav tak, aby posledné visy už výrazne pálili, ale ich ešte dokončíš.</p>
+               <p><strong>Podrobne o tomto tréningu:</strong> Repeaters 7/3 sú intervalový protokol zameraný na lokálnu vytrvalosť predlaktí a toleranciu „pumpy“. Striedanie <em>7 s</em> práce a <em>3 s</em> odpočinku vytvára vysoký metabolický stres a čiastočnú hypoxiu, čím sa zvyšuje kapilarizácia a aeróbna kapacita svalov. Pri <em>2 tréningoch/týždeň</em> počas 4–8 týždňov môže tento protokol výrazne zlepšiť čas do vyčerpania a vytrvalosť.</p>`
       },
       base: { prep: 5, work: 7, rest: 3, rounds: 6, cycles: 3, cRest: 180 },
       levels: { easy: { cycles: 2 }, medium: {}, hard: { cycles: 4 } },
@@ -397,13 +393,11 @@
     },
     {
       id: 'pull-strength',
-      name: 'Weighted Pull-ups',
+      name: 'Weighted Pull-ups (Ťažké zhyby)',
       info: {
         badge: 'Ťahová Sila',
-        text: `
-          <p><strong>Mechanizmus:</strong> Nízke počty (4–6) s pridanou váhou, dlhšie pauzy.</p>
-          <p><strong>Prečo to funguje:</strong> Silnejší príťah uľahčí ťažké kroky a previsy.</p>
-        `
+        text: `<p><strong>V jednoduchosti čo robiť:</strong> Ak zvládneš ≥ <em>10–12</em> čistých zhybov s vlastnou váhou, pridaj ~<em>10–20 %</em> hmotnosti (vesta alebo kotúč). Rob <em>2–4 série</em> po <em>4–6</em> technických zhyboch, medzi sériami odpočívaj <em>2–3 min</em>.</p>
+               <p><strong>Podrobne o tomto tréningu:</strong> Ťažké zhyby s pridanou záťažou rozvíjajú maximálnu ťahovú silu (lat, biceps, stabilizátory ramena). Protokol je silový: nízky počet opakovaní pri vysokej intenzite, s dostatočnými prestávkami (<em>2–3 min</em>) pre zachovanie kvality a zníženie kumulatívneho preťaženia lakťov.</p>`
       },
       base: { prep: 10, work: 30, rest: 150, rounds: 5, cycles: 1, cRest: 0 },
       levels: { easy: { rounds: 3 }, medium: {}, hard: { rounds: 6 } },
@@ -411,13 +405,11 @@
     },
     {
       id: 'pull-emom',
-      name: 'EMOM 10min',
+      name: 'EMOM Pull-ups (Kapacita / vytrvalosť)',
       info: {
         badge: 'Kapacita',
-        text: `
-          <p><strong>Mechanizmus:</strong> Každú minútu séria, zvyšok minúty oddych.</p>
-          <p><strong>Prečo to funguje:</strong> Buduje pracovnú kapacitu rúk pre dlhé cesty a viac pokusov.</p>
-        `
+        text: `<p><strong>V jednoduchosti čo robiť:</strong> Nastav <em>1-min interval</em>. Na začiatku každej minúty urob dohodnutý počet zhybov (napr. <em>3–5</em>), zvyšok minúty oddychuj. Pokračuj <em>10–20 min</em> podľa úrovne; ak nevieš dokončiť, zníž počet zhybov.</p>
+               <p><strong>Podrobne o tomto tréningu:</strong> EMOM tréning zhybov buduje pracovnú kapacitu a odolnosť voči únave. Kumulatívny objem po 10–20 minútach môže dosiahnuť <em>50–100</em> opakovaní. Intenzita jednej série nie je maximálna, ale únava sa postupne nabaľuje, čím sa zvyšuje metabolický stres a odolnosť.</p>`
       },
       base: { prep: 10, work: 15, rest: 45, rounds: 10, cycles: 1, cRest: 0 },
       levels: { easy: { rounds: 6 }, medium: {}, hard: { rounds: 12 } },
@@ -428,10 +420,8 @@
       name: 'Frenchies',
       info: {
         badge: 'Lock-off Sila',
-        text: `
-          <p><strong>Mechanizmus:</strong> Zhyb plus výdrže v rôznych uhloch lakťa.</p>
-          <p><strong>Prečo to funguje:</strong> Zlepšuje schopnosť „zamknúť“ ruku pri cvakaní a statických pozíciách.</p>
-        `
+        text: `<p><strong>V jednoduchosti čo robiť:</strong> Spravíš zhyb hore a podržíš bradu nad hrazdou <em>4 s</em>, potom sa spustíš do <em>90°</em> v lakťoch a držíš <em>4 s</em>, nakoniec do ≈<em>120°</em> a opäť <em>4 s</em>. To je jeden cyklus; bez pauzy sprav 2–3 cykly, potom <em>5 min</em> odpočinku a zopakuj 1–2 série.</p>
+               <p><strong>Podrobne o tomto tréningu:</strong> Frenchies kombinujú koncentrické zhyby s izometrickými výdržami v troch kľúčových uhloch lakťa (plný zhyb, <em>90°</em>, <em>120°</em>). Rozvíjajú lock‑off silu a miestnu vytrvalosť; pre tento protokol odporúčané max <em>1–2× týždenne</em> s dôrazom na techniku a kontrolu pohybu.</p>`
       },
       base: { prep: 5, work: 45, rest: 240, rounds: 3, cycles: 1, cRest: 0 },
       levels: { easy: { rounds: 2 }, medium: {}, hard: { rounds: 4 } },
@@ -440,7 +430,11 @@
     {
       id: 'custom',
       name: 'Vlastný plán',
-      info: { badge: 'Custom', text: '<p>Tvoj tréning, tvoje časy a počty.</p>' },
+      info: { 
+        badge: 'Custom', 
+        text: `<p><strong>V jednoduchosti čo robiť:</strong> Vyber si cieľ (<em>sila prstov, vytrvalosť, ťahová sila</em>) a nastav časy tak, aby „work“ fáza bola buď krátka a veľmi intenzívna, alebo dlhšia a stredne ťažká. Počet opakovaní a sérií prispôsob podľa únavy a časových možností.</p>
+               <p><strong>Podrobne o tomto tréningu:</strong> Vlastný plán ti umožní skombinovať princípy z max hangs, repeaterov a zhybových protokolov. Pri silových cieľoch vol krátke visy alebo nízky počet ťažkých zhybov s dlhými prestávkami; pri vytrvalostných cieľoch zvoľ dlhšie série s kratšími pauzami. Celkový počet náročných tréningových dní by nemal presiahnuť približne <em>4/týždeň</em>.</p>`
+      },
       base: { prep: 5, work: 10, rest: 30, rounds: 5, cycles: 2, cRest: 120 },
       levels: null,
       ui: { hintWork: 'Makať podľa vlastných pravidiel.', hintRest: 'Oddych.', hintCRest: 'Dlhšia pauza.' }
@@ -496,6 +490,16 @@
     finish: document.getElementById('sndFinish')
   };
 
+  // slovenské názvy fáz
+  const phaseLabels = {
+    idle: 'ČAKANIE',
+    prepare: 'PRÍPRAVA',
+    work: 'CVIČENIE',
+    rest: 'ODDYCH',
+    cycleRest: 'PAUZA SÉRIE',
+    finished: 'HOTOVO'
+  };
+
   /* === 3. INITIALIZATION === */
   function init() {
     presets.forEach(p => {
@@ -529,6 +533,13 @@
     document.getElementById('closeSettings').addEventListener('click', () => els.settingsModal.classList.remove('open'));
     document.getElementById('btnInfo').addEventListener('click', showInfo);
     document.getElementById('closeInfo').addEventListener('click', () => els.infoModal.classList.remove('open'));
+
+    // umožni zatvoriť info modal kliknutím mimo .modal-content (na overlay)
+    els.infoModal.addEventListener('click', (e) => {
+      if (e.target === els.infoModal) {
+        els.infoModal.classList.remove('open');
+      }
+    });
 
     els.btnAction.addEventListener('click', handleActionClick);
     els.btnReset.addEventListener('click', fullReset);
@@ -634,7 +645,7 @@
     totalTimeLeft = calcTotal();
     
     renderDisplay();
-    els.phaseLbl.textContent = "READY";
+    els.phaseLbl.textContent = phaseLabels['prepare'] ? 'PRIPRAVENÝ?' : 'PRIPRAVENÝ?';
     els.phaseLbl.style.color = "var(--text-muted)";
     els.instText.textContent = "Stlač Štart.";
     
@@ -681,7 +692,7 @@
     countdownPlayed = false; // nový blok → nový countdown
 
     document.body.style.setProperty('--shadow-color', color);
-    els.phaseLbl.textContent = newPhase.toUpperCase();
+    els.phaseLbl.textContent = phaseLabels[newPhase] || newPhase.toUpperCase();
     els.phaseLbl.style.color = color;
     els.instructionBar.style.borderColor = color;
     els.ring.style.stroke = color;
@@ -777,7 +788,7 @@
 
   function renderDisplay() {
     els.time.textContent = formatTime(timeLeft);
-    els.totalTime.textContent = `Total: ${formatTime(totalTimeLeft > 0 ? totalTimeLeft : 0)}`;
+    els.totalTime.textContent = `Celkom: ${formatTime(totalTimeLeft > 0 ? totalTimeLeft : 0)}`;
     els.round.textContent = roundIndex;
     els.roundTot.textContent = config.rounds || 0;
     els.cycle.textContent = cycleIndex;
