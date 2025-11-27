@@ -1,8 +1,8 @@
 {
   "name": "Climb Timer",
   "short_name": "ClimbTimer",
-  "start_url": "app.html",
   "display": "standalone",
+  "start_url": "app.html",
   "background_color": "#050505",
   "theme_color": "#050505",
   "icons": [
