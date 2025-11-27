@@ -244,6 +244,17 @@
     .info-content p {
       font-size: 0.95rem; line-height: 1.6; color: #ccc; margin-bottom: 14px;
     }
+    /* malý nenápadný riadok pod kruhom zobrazujúci nasledujúcu fázu */
+    .next-phase {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      opacity: 0.65;
+      margin-top: 8px;
+      text-align: center;
+      font-style: italic;
+      line-height: 1;
+      margin-bottom: 25px;
+    }
     .hidden { display: none !important; }
   </style>
 </head>
@@ -261,6 +272,10 @@
       <button class="icon-btn" id="btnSettings" title="Nastavenie">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
       </button>
+      <!-- skryté tlačidlo pre vlastný Install prompt, zobrazí sa keď beforeinstallprompt príde -->
+      <button class="icon-btn hidden" id="btnInstall" title="Pridať na plochu" aria-hidden="true">
+        ⬇
+      </button>
     </div>
   </header>
 
@@ -277,6 +292,8 @@
         <div class="total-time" id="totalTimeDisplay">Celkom: 00:00</div>
       </div>
     </div>
+    <!-- nenápadný riadok pod kruhom (sibling timer-wrapper) -->
+    <div class="next-phase" id="nextPhaseInfo"></div>
 
     <div class="dashboard">
       <div class="instruction-bar" id="instructionBar">
@@ -461,7 +478,8 @@
     presetSel: document.getElementById('presetSelect'),
     diffBtns: document.querySelectorAll('.diff-opt'),
     customConfig: document.getElementById('customConfig'),
-    instructionBar: document.getElementById('instructionBar')
+    instructionBar: document.getElementById('instructionBar'),
+    nextPhase: document.getElementById('nextPhaseInfo')
   };
 
   let currentPresetId = 'warmup';
@@ -786,6 +804,42 @@
     }
   }
 
+  function getUpcomingPhasePreview() {
+    if (!config || !config.work) return null;
+    // returns { phase: 'rest'|'work'|..., time: seconds } or null if none
+    if (phase === 'idle') return { phase: 'prepare', time: config.prep || 0 };
+    if (phase === 'prepare') return { phase: 'work', time: config.work || 0 };
+    if (phase === 'work') {
+      if (roundIndex < (config.rounds || 0)) {
+        if ((config.rest || 0) > 0) return { phase: 'rest', time: config.rest || 0 };
+        return { phase: 'work', time: config.work || 0 };
+      } else {
+        if (cycleIndex < (config.cycles || 0)) {
+          if ((config.cRest || 0) > 0) return { phase: 'cycleRest', time: config.cRest || 0 };
+          return { phase: 'work', time: config.work || 0 };
+        } else {
+          return { phase: 'finished', time: 0 };
+        }
+      }
+    }
+    if (phase === 'rest') return { phase: 'work', time: config.work || 0 };
+    if (phase === 'cycleRest') return { phase: 'work', time: config.work || 0 };
+    if (phase === 'finished') return null;
+    return null;
+  }
+
+  function updateNextPhaseInfo() {
+    const preview = getUpcomingPhasePreview();
+    if (!preview) {
+      els.nextPhase.classList.add('hidden');
+      return;
+    }
+    els.nextPhase.classList.remove('hidden');
+    const label = phaseLabels[preview.phase] || preview.phase.toUpperCase();
+    // zobrazí "Nasleduje: 2:00 — ODDYCH"
+    els.nextPhase.textContent = `Nasleduje: ${formatTime(preview.time)} — ${label.toLowerCase()}`;
+  }
+
   function renderDisplay() {
     els.time.textContent = formatTime(timeLeft);
     els.totalTime.textContent = `Celkom: ${formatTime(totalTimeLeft > 0 ? totalTimeLeft : 0)}`;
@@ -793,11 +847,41 @@
     els.roundTot.textContent = config.rounds || 0;
     els.cycle.textContent = cycleIndex;
     els.cycleTot.textContent = config.cycles || 0;
+    updateNextPhaseInfo();
   }
 
   // Start
   init();
-</script>
+  
+// PWA install prompt handling
+let deferredPrompt = null;
+const btnInstall = document.getElementById('btnInstall');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  // zrušíme automatické zobrazenie a uložíme event
+  e.preventDefault();
+  deferredPrompt = e;
+  // zobrazíme tlačidlo v UI
+  btnInstall.classList.remove('hidden');
+  btnInstall.setAttribute('aria-hidden', 'false');
+});
+
+if (btnInstall) {
+  btnInstall.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    // zobraz systémový prompt
+    deferredPrompt.prompt();
+    // čakáme na rozhodnutie používateľa
+    const { outcome } = await deferredPrompt.userChoice;
+    // skryjeme tlačidlo po voľbe
+    btnInstall.classList.add('hidden');
+    btnInstall.setAttribute('aria-hidden', 'true');
+    deferredPrompt = null;
+    // (voliteľne) môžeš použiť outcome === 'accepted' na logging
+  });
+}
+
+  </script>
 
 <script>
   if ('serviceWorker' in navigator) {
