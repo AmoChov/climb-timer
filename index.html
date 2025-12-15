@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Climb Timer</title>
+  
+  <link rel="icon" href="timer.ico" type="image/x-icon">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;800&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#050505">
+
+  
+  <style>
+    :root {
+      --bg-color: #050505;
+      --card-bg: #101216;
+      --text-main: #e0e0e0;
+      --text-muted: #888888;
+      --color-prepare: #f59e0b;
+      --color-work: #ef4444;
+      --color-rest: #10b981;
+      --color-cycle-rest: #3b82f6;
+      --color-idle: #8b5cf6;
+      --shadow-color: var(--color-idle);
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Manrope', sans-serif;
+      color: var(--text-main);
+      height: 100dvh;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+
+      background-color: var(--bg-color);
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    header {
+      padding: 20px 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      z-index: 10;
+      background: linear-gradient(to bottom, rgba(5,5,5,0.95), transparent);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .brand img.brand-logo {
+      height: 46px;
+      width: auto;
+      object-fit: contain;
+    }
+    @media (max-width: 520px) {
+      .brand img.brand-logo { height: 32px; }
+    }
+    .brand .brand-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+    .brand h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: white;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(255,255,255,0.2);
+    }
+    .tagline {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      font-size: 0.75rem; color: var(--text-muted); font-weight: 600; letter-spacing: 2px;
+    }
+
+    button.icon-btn {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-main); width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+      backdrop-filter: blur(5px);
+    }
+    button.icon-btn:active { transform: scale(0.95); }
+
+    main {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      position: relative; width: 100%;
+    }
+
+    .timer-wrapper {
+      position: relative; width: 280px; height: 280px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .glow-backdrop {
+      position: absolute; width: 70%; height: 70%; border-radius: 50%;
+      background: var(--shadow-color); filter: blur(50px); opacity: 0.25;
+      transition: background 0.4s ease; z-index: 0;
+    }
+
+    svg.progress-ring {
+      width: 100%; height: 100%; transform: rotate(-90deg);
+      z-index: 2; filter: drop-shadow(0 0 8px rgba(0,0,0,0.6));
+    }
+    
+    .ring-bg { stroke: #18181b; stroke-width: 8; fill: transparent; }
+
+    .ring-val {
+      stroke: var(--shadow-color); stroke-width: 8; stroke-linecap: round; fill: transparent;
+      stroke-dasharray: 816; stroke-dashoffset: 0;
+      transition: stroke-dashoffset 1s linear, stroke 0.4s ease;
+    }
+
+    .timer-content {
+      position: absolute; z-index: 3; text-align: center;
+      display: flex; flex-direction: column; align-items: center;
+    }
+
+    .phase-badge {
+      font-size: 0.8rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 2px; padding: 6px 14px; border-radius: 20px;
+      background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.15);
+      color: var(--shadow-color); margin-bottom: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .time-digits {
+      font-family: 'JetBrains Mono', monospace; font-size: 4.8rem;
+      font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums;
+      text-shadow: 0 5px 15px rgba(0,0,0,0.7);
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+
+    .total-time {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
+      color: var(--text-muted); margin-top: 10px; opacity: 0.8;
+    }
+
+    .dashboard {
+      width: 100%; max-width: 360px; padding: 0 20px;
+      display: flex; flex-direction: column; gap: 16px; z-index: 5;
+    }
+
+    .stats-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+
+    .stat-card {
+      background: rgba(20, 22, 26, 0.8); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px; padding: 12px; text-align: center;
+      backdrop-filter: blur(10px);
+    }
+
+    .stat-val {
+      font-family: 'JetBrains Mono', monospace; font-size: 1.3rem;
+      font-weight: 700; display: block; color: white;
+    }
+    
+    .stat-label {
+      font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 1px; margin-top: 4px; display: block;
+    }
+
+    .instruction-bar {
+      background: rgba(20, 22, 26, 0.9); border-left: 3px solid var(--shadow-color);
+      padding: 16px; border-radius: 12px; font-size: 0.95rem;
+      display: flex; align-items: center; gap: 14px; transition: border-color 0.4s;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.05); border-left-width: 3px;
+    }
+    .inst-icon { font-size: 1.2rem; }
+
+    /* skip rest button styles (now placed in controls row) */
+    .btn-skip {
+      background: linear-gradient(90deg, rgba(255,255,255,0.03), transparent);
+      border: 1px solid rgba(255,255,255,0.06);
+      color: var(--text-main); padding: 12px 16px; border-radius: 12px; font-weight:800;
+      cursor: pointer; display: inline-flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .btn-skip:active { transform: translateY(1px); }
+    .btn-skip .skip-icon { display: none; font-size:1.2rem; }
+    /* mobile: show icon only */
+    @media (max-width: 520px) {
+      .btn-skip .skip-text { display: none; }
+      .btn-skip .skip-icon { display: inline-block; }
+    }
+
+    .controls-area {
+      padding: 24px; padding-bottom: max(24px, env(safe-area-inset-bottom));
+      width: 100%; display: flex; gap: 12px;
+      background: linear-gradient(to top, rgba(0,0,0,0.95) 30%, transparent);
+      align-items: center; justify-content: space-between;
+      flex-direction: column;
+      position: sticky;
+      bottom: 0;
+      z-index: 50;
+      flex-shrink: 0;
+      /* wrap controls on narrow widths */
+    }
+    .controls-row {
+      width: 100%;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .controls-row .btn {
+      flex: 1 1 45%;
+      min-width: 0;
+    }
+    .controls-row .btn-main {
+      flex: 1 1 100%;
+    }
+
+    .btn {
+      border: none; padding: 14px; border-radius: 14px;
+      font-size: 1rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 1px; cursor: pointer;
+      transition: transform 0.12s ease, opacity 0.12s ease, background 0.12s;
+      flex: 1; /* make each control take equal space */
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      /* glass look */
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.06);
+      backdrop-filter: blur(8px) saturate(120%);
+      -webkit-backdrop-filter: blur(8px) saturate(120%);
+      box-shadow: 0 6px 18px rgba(2,6,23,0.6);
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-main {
+      flex: 2; background: #e0e0e0; color: black;
+      box-shadow: 0 0 25px rgba(255,255,255,0.1);
+    }
+    .btn-sub {
+      flex: 1; background: #1f2228; color: white; border: 1px solid #333;
+    }
+
+    /* keep skip button styles (shows text on desktop, icon on mobile) */
+    .btn-skip {
+      margin-left: auto; background: transparent; border: 1px solid rgba(255,255,255,0.06);
+      color: var(--text-main); padding: 8px 12px; border-radius: 12px; font-weight:800;
+      cursor: pointer; display: inline-flex; align-items:center; gap:8px;
+    }
+    .btn-skip:active { transform: translateX(2px); }
+    .btn-skip .skip-icon { display: none; font-size:1.2rem; }
+    /* mobile: show icon only */
+    @media (max-width: 520px) {
+      .btn-skip { padding: 8px; border-radius: 12px; }
+      .btn-skip .skip-text { display: none; }
+      .btn-skip .skip-icon { display: inline-block; }
+    }
+
+    .btn .btn-icon { display: none; }
+    .btn .btn-text { display: inline-block; }
+
+    /* narrow phones, medium height: keep all three controls in one row */
+    @media (max-width: 420px) and (min-height: 560px) and (max-height: 790px) {
+      .controls-area { align-items: stretch; }
+      .controls-row {
+        flex-wrap: nowrap;
+        gap: 10px;
+      }
+      .controls-row .btn,
+      .controls-row .btn-main {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+      .btn {
+        padding: 12px;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        gap: 8px;
+      }
+      .btn .btn-text { font-size: 0.9rem; }
+    }
+
+    /* compact dashboard/instruction for medium heights (520–670px) to prevent overlap */
+    @media (min-height: 520px) and (max-height: 670px) {
+      .dashboard { max-width: 340px; gap: 10px; padding: 0 16px; }
+      .next-phase { margin-bottom: 12px; }
+      .instruction-bar { padding: 12px; font-size: 0.9rem; gap: 10px; line-height: 1.4; }
+      .inst-icon { font-size: 1rem; }
+      .stats-grid { gap: 10px; }
+      .stat-card { padding: 10px; }
+      .stat-val { font-size: 1.15rem; }
+      .stat-label { font-size: 0.68rem; }
+    }
+
+    /* mobile: show icon-only for controls, text hidden */
+    @media (max-width: 520px) {
+      .btn { padding: 12px; border-radius: 12px; }
+      .btn .btn-text { display: none; }
+      .btn .btn-icon { display: inline-flex; align-items: center; }
+      /* action icon: show play by default, switch to pause when data-state="running" */
+      .action-icon .icon-play { display: inline-block; }
+      .action-icon .icon-pause { display: none; }
+      .btn-main[data-state="running"] .action-icon .icon-play { display: none; }
+      .btn-main[data-state="running"] .action-icon .icon-pause { display: inline-block; }
+      /* ensure skip svg fits and inherits color */
+      .skip-icon svg { width: 18px; height: 18px; }
+      .reset-icon svg { width: 20px; height: 20px; }
+    }
+
+    .modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+      z-index: 100; display: flex; align-items: flex-end;
+      visibility: hidden; opacity: 0; transition: all 0.25s ease;
+    }
+    .modal.open { visibility: visible; opacity: 1; }
+
+    .modal-content {
+      width: 100%; background: #14161a; border-top: 1px solid #333;
+      border-radius: 24px 24px 0 0; padding: 24px;
+      padding-bottom: max(30px, env(safe-area-inset-bottom));
+      transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      max-height: 85vh; overflow-y: auto;
+    }
+    .modal.open .modal-content { transform: translateY(0); }
+
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 24px;
+    }
+    .modal-title { font-size: 1.2rem; font-weight: 800; color: white; }
+    .close-btn {
+      background: #2a2d35; border: none; color: white;
+      width: 32px; height: 32px; border-radius: 50%;
+      font-size: 1.2rem; cursor: pointer;
+    }
+
+    .setting-row { margin-bottom: 20px; }
+    .setting-label {
+      display: block; color: var(--text-muted); font-size: 0.75rem;
+      text-transform: uppercase; font-weight: 700; margin-bottom: 8px;
+    }
+    select, input {
+      width: 100%; background: #050505; border: 1px solid #333;
+      color: white; padding: 14px; border-radius: 12px;
+      font-size: 1rem; font-family: 'Manrope', sans-serif; outline: none;
+    }
+    /* jemne odsadená poloha šípky v selecte (preset) */
+    #presetSelect {
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8' fill='none'><path d='M1 1l6 6 6-6' stroke='%23888' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+      background-repeat: no-repeat;
+      /* posuň šípku od pravého okraja o ~18px */
+      background-position: calc(100% - 18px) center;
+      padding-right: 44px;
+    }
+    /* skryť natívne expand ikony v IE/Edge */
+    #presetSelect::-ms-expand { display: none; }
+    select:focus, input:focus { border-color: var(--color-idle); }
+
+    .diff-selector {
+      display: flex; background: #050505; padding: 4px;
+      border-radius: 14px; border: 1px solid #333;
+    }
+    .diff-opt {
+      flex: 1; padding: 10px; text-align: center;
+      background: transparent; color: #666; border-radius: 10px;
+      font-size: 0.85rem; font-weight: 700; border: none; cursor: pointer;
+    }
+    .diff-opt.active {
+      background: #222; color: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    .info-badge {
+      display: inline-block; padding: 4px 10px; border-radius: 6px;
+      background: #222; color: var(--color-prepare);
+      font-size: 0.75rem; font-weight: 700; margin-bottom: 12px; border: 1px solid #333;
+    }
+    .info-content p {
+      font-size: 0.95rem; line-height: 1.6; color: #ccc; margin-bottom: 14px;
+    }
+    /* research links block under each plan info */
+    .research {
+      margin-top: 12px; padding: 10px 12px; border-left: 3px solid rgba(255,255,255,0.04);
+      background: rgba(255,255,255,0.01); border-radius: 8px; margin-bottom: 6px;
+    }
+    .research-title {
+      font-size: 0.85rem; color: var(--text-main); font-weight: 800; margin-bottom: 8px;
+    }
+    .research-links { display: flex; gap: 8px; flex-wrap: wrap; }
+    .research-btn {
+      font-size: 0.78rem; color: #d6e6ff; background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.04); padding: 6px 10px; border-radius: 8px;
+      text-decoration: none; display: inline-block; max-width: 160px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    }
+    /* animations for phase transitions */
+    @keyframes badge-bounce { 0%{transform:translateY(-6px)}50%{transform:translateY(6px)}100%{transform:translateY(0)} }
+    @keyframes ring-pulse { 0%{transform:scale(1)}50%{transform:scale(1.03)}100%{transform:scale(1)} }
+    @keyframes text-jump { 0%{transform:translateY(0)}50%{transform:translateY(-8px)}100%{transform:translateY(0)} }
+    .anim-badge { animation: badge-bounce 320ms cubic-bezier(.2,.9,.3,1); }
+    .anim-ring { animation: ring-pulse 150ms ease; }
+    .anim-text { animation: text-jump 220ms cubic-bezier(.2,.9,.3,1); }
+
+    /* Big Timer mode (full-screen) */
+    .timer-wrapper.big {
+      position: fixed !important; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999;
+      display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.85);
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    .timer-wrapper.big .time-digits { font-size: 12rem !important; }
+  .timer-wrapper.big .phase-badge { transform: translateY(-20px); }
+  /* in big mode show minutes and seconds on separate lines and clamp sizes to viewport */
+  .timer-wrapper.big .time-digits { display:flex; flex-direction:column; gap:6px; }
+  .timer-wrapper.big .time-digits .mins { font-size: clamp(6rem, 22vw, 12rem); }
+  .timer-wrapper.big .time-digits .secs { font-size: clamp(4rem, 14vw, 8rem); }
+  .timer-wrapper.big .time-digits .colon { display:none; }
+  /* normal mode show mins:secs inline */
+  .time-digits .mins { display:inline-block; }
+  .time-digits .secs { display:inline-block; }
+  .time-digits .colon { display:inline-block; }
+    body.big-timer .dashboard, body.big-timer .controls-area, body.big-timer header { opacity: 0.06; pointer-events: none; }
+
+    /* expand button removed — timer is clickable directly */
+
+    /* injury warnings in instruction bar */
+    #injuryWarnings { margin-left: 8px; color: #ffdddd; font-size:0.86rem; display:block; }
+    #injuryWarnings .warn { display:block; margin-top:6px; color: #ffb3b3; font-weight:700; }
+    /* malý nenápadný riadok pod kruhom zobrazujúci nasledujúcu fázu */
+    .next-phase {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      opacity: 0.65;
+      margin-top: 8px;
+      text-align: center;
+      font-style: italic;
+      line-height: 1;
+      margin-bottom: 25px;
+    }
+    .hidden { display: none !important; }
+
+    /* Progress bar (hidden by default; shown in compact height) */
+    .phase-progress {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.06);
+      backdrop-filter: blur(8px) saturate(120%);
+      -webkit-backdrop-filter: blur(8px) saturate(120%);
+      box-shadow: 0 6px 18px rgba(2,6,23,0.6);
+    }
+    .phase-progress.hidden { display: none !important; }
+    .phase-progress .bar-bg {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+    .phase-progress .bar-val {
+      height: 100%;
+      width: 100%;
+      border-radius: 999px;
+      background: var(--shadow-color);
+      box-shadow: 0 0 18px rgba(255,255,255,0.08);
+      transition: width 1s linear, background 0.4s ease;
+    }
+
+    /* Compact height shrink (e.g., 320x320) */
+    @media (max-height: 520px) {
+      header { padding: 12px 14px; }
+      /* ...existing code... */
+      .timer-wrapper { width: clamp(180px, 56vw, 240px); height: clamp(180px, 56vw, 240px); margin-bottom: 12px; }
+      .time-digits { font-size: clamp(3.2rem, 10vw, 4.2rem); }
+      .phase-badge { font-size: 0.72rem; padding: 5px 12px; margin-bottom: 8px; }
+      .next-phase { margin-top: 6px; margin-bottom: 10px; }
+      .dashboard { max-width: 340px; gap: 10px; padding: 0 14px; }
+      .instruction-bar { padding: 12px; font-size: 0.9rem; gap: 10px; }
+      .stat-card { padding: 10px; }
+      .stat-val { font-size: 1.15rem; }
+      .controls-area { padding: 14px; padding-bottom: max(14px, env(safe-area-inset-bottom)); }
+      .btn { padding: 12px; border-radius: 12px; }
+      .btn-skip { padding: 8px 10px; }
+    }
+    /* Prevent overlap of next-phase/total-time under very low height (<560px) */
+    @media (max-height: 560px) {
+      .timer-wrapper { margin-bottom: 6px; }
+      .time-digits { font-size: clamp(3rem, 9vw, 4rem); }
+      .total-time { display: none; }
+      .next-phase { display: none !important; }
+    }
+    /* tighten spacing 501–560px to prevent overlaps (instruction + stats vs timer) */
+    @media (min-height: 501px) and (max-height: 560px) {
+      header { padding: 12px 14px; }
+      main { justify-content: center; padding-top: 0; }
+      .timer-wrapper { width: clamp(150px, 48vw, 185px); height: clamp(150px, 48vw, 185px); margin-bottom: 56px; }
+      .time-digits { font-size: clamp(2.3rem, 7vw, 3.1rem); }
+      .dashboard { margin-top: 12px; max-width: 340px; gap: 12px; padding: 0 18px; }
+      .instruction-bar { padding: 10px 12px; font-size: 0.86rem; gap: 8px; line-height: 1.3; }
+      .stats-grid { gap: 12px; }
+      .stat-card { padding: 10px; }
+      .stat-val { font-size: 1.04rem; }
+      .stat-label { font-size: 0.64rem; }
+    }
+    /* also hide next-phase on slightly taller but still tight heights to avoid overlap */
+    @media (min-height: 561px) and (max-height: 610px) {
+      .next-phase { display: none !important; }
+      .total-time { display: none; }
+      .timer-wrapper { margin-bottom: 8px; }
+      .time-digits { font-size: clamp(3.2rem, 9vw, 4.3rem); }
+      .instruction-bar { padding: 12px; font-size: 0.9rem; }
+      .stats-grid { gap: 10px; }
+      .stat-card { padding: 10px; }
+      .stat-val { font-size: 1.15rem; }
+    }
+    @media (max-height: 380px) {
+      .next-phase { display: none !important; }
+      .total-time { display: none; }
+      .instruction-bar { padding: 10px; font-size: 0.85rem; }
+      .timer-wrapper { margin-bottom: 8px; }
+    }
+
+    /* Bar mode: when height <= 500px hide ring, show bar */
+    @media (max-height: 500px) {
+      svg.progress-ring,
+      .glow-backdrop { display: none !important; }
+      .phase-progress { display: block; }
+      .timer-wrapper { width: auto; height: auto; margin: 0 0 10px 0; }
+      .timer-content { position: relative; }
+      .time-digits { font-size: clamp(3rem, 8vw, 4.4rem); }
+
+      /* tri malé tlačidlá vedľa seba, bez zalomenia */
+      .controls-area { align-items: stretch; }
+      .controls-row {
+        flex-wrap: nowrap;
+        gap: 8px;
+      }
+      .controls-row .btn,
+      .controls-row .btn-main {
+        flex: 1 1 0;
+      }
+      .btn {
+        padding: 10px;
+        border-radius: 11px;
+        font-size: 0.85rem;
+        gap: 6px;
+      }
+      .btn .btn-text { font-size: 0.82rem; }
+    }
+
+    /* Fallback bar mode for úzke displeje s výškou <=560px (napr. 501px) */
+    @media (max-width: 520px) and (max-height: 560px) {
+      svg.progress-ring,
+      .glow-backdrop { display: none !important; }
+      .phase-progress { display: block; }
+      .timer-wrapper { width: auto; height: auto; margin: 0 0 10px 0; }
+      .controls-area { align-items: stretch; }
+      .controls-row { flex-wrap: nowrap; gap: 8px; }
+      .controls-row .btn,
+      .controls-row .btn-main { flex: 1 1 0; }
+      .btn { padding: 10px; border-radius: 11px; font-size: 0.85rem; gap: 6px; }
+      .btn .btn-text { font-size: 0.82rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand" id="brandInstallTrigger">
+      <img class="brand-logo" src="logo-bouldrovka-white.png" alt="Climb Timer logo">
+      <div class="brand-text">
+        <h1>Climb Timer</h1>
+        <span class="tagline">ZHYBUJ &amp; VIS</span>
+      </div>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button class="icon-btn" id="btnInfo" title="Informácie">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+      </button>
+      <button class="icon-btn" id="btnSettings" title="Nastavenie">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="timer-wrapper">
+      <div class="glow-backdrop" id="glowBackdrop"></div>
+      <svg class="progress-ring" viewBox="0 0 300 300">
+        <circle class="ring-bg" cx="150" cy="150" r="130"></circle>
+        <circle class="ring-val" id="ringProgress" cx="150" cy="150" r="130"></circle>
+      </svg>
+      <div class="timer-content">
+        <div class="phase-badge" id="phaseLabel">ČAKANIE</div>
+  <div class="time-digits" id="timeDisplay"><span class="mins">0</span><span class="colon">:</span><span class="secs">00</span></div>
+  <div class="total-time" id="totalTimeDisplay">Celkom: 00:00</div>
+      </div>
+    </div>
+    <!-- nenápadný riadok pod kruhom (sibling timer-wrapper) -->
+    <div class="next-phase" id="nextPhaseInfo"></div>
+
+    <div class="dashboard">
+      <div class="instruction-bar" id="instructionBar">
+        <span class="inst-icon">💡</span>
+        <div style="display:flex; flex-direction:column; flex:1;">
+          <span id="instructionText">Priprav sa.</span>
+          <div id="injuryWarnings" class="hidden" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-val"><span id="roundCurr">0</span>/<span id="roundTot">0</span></span>
+          <span class="stat-label">Opakovanie</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-val"><span id="cycleCurr">0</span>/<span id="cycleTot">0</span></span>
+          <span class="stat-label">Séria</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <section class="controls-area">
+    <!-- progress bar for compact height -->
+    <div class="phase-progress hidden" id="phaseProgressBar" aria-hidden="true">
+      <div class="bar-bg">
+        <div class="bar-val" id="barProgress"></div>
+      </div>
+    </div>
+    <div class="controls-row">
+      <button class="btn btn-sub" id="btnReset" disabled aria-label="Reset">
+      <span class="btn-icon reset-icon" aria-hidden="true">
+        <!-- simple X icon (close-style) -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </span>
+      <span class="btn-text">RESET</span>
+    </button>
+    <button class="btn btn-main" id="btnAction" aria-label="Štart/Pauza">
+      <span class="btn-icon action-icon" aria-hidden="true">
+        <!-- play icon (default) -->
+        <svg class="icon-play" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        <!-- pause icon -->
+        <svg class="icon-pause" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+      </span>
+      <span class="btn-text">ŠTART</span>
+    </button>
+    <button id="btnSkipRest" class="btn btn-sub btn-skip hidden" aria-hidden="true">
+      <span class="skip-text">Preskočiť fázu</span>
+      <span class="skip-icon">➜</span>
+    </button>
+    </div>
+  </section>
+
+  <audio id="sndPrepare" src="prepare.mp3" preload="auto"></audio>
+  <audio id="sndPhase" src="phase.mp3" preload="auto"></audio>
+  <audio id="sndCount" src="countdown.mp3" preload="auto"></audio>
+  <audio id="sndFinish" src="finish.mp3" preload="auto"></audio>
+
+  <div class="modal" id="settingsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">Nastavenie tréningu</div>
+        <button class="close-btn" id="closeSettings">×</button>
+      </div>
+      <div class="setting-row">
+        <label class="setting-label">Zvoľ plán</label>
+        <select id="presetSelect"></select>
+      </div>
+      <div class="setting-row" id="difficultyRow">
+        <label class="setting-label">Úroveň</label>
+        <div class="diff-selector">
+          <button class="diff-opt" data-val="easy">Ľahká</button>
+          <button class="diff-opt active" data-val="medium">Normálna</button>
+          <button class="diff-opt" data-val="hard">Ťažká</button>
+        </div>
+      </div>
+      <div id="customConfig" class="hidden">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+          <div><label class="setting-label">Príprava (s)</label><input type="number" id="c_prep" value="5"></div>
+          <div><label class="setting-label">Cvičenie (s)</label><input type="number" id="c_work" value="10"></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+          <div><label class="setting-label">Oddych (s)</label><input type="number" id="c_rest" value="5"></div>
+          <div><label class="setting-label">Opakovania</label><input type="number" id="c_rounds" value="6"></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+          <div><label class="setting-label">Série</label><input type="number" id="c_cycles" value="3"></div>
+          <div><label class="setting-label">Oddych medzi sériami (s)</label><input type="number" id="c_crest" value="180"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="infoModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">O tomto tréningu</div>
+        <button class="close-btn" id="closeInfo">×</button>
+      </div>
+      <div class="info-content" id="infoContent"></div>
+    </div>
+  </div>
+
+  <script>
+  /* === 1. DATA PRESETS === */
+  const presets = [
+    {
+      id: 'warmup',
+      name: 'Warm-up (Rozcvička)',
+      info: { 
+        badge: 'Prevencia zranení', 
+        text: `<p><strong>V jednoduchosti čo robiť:</strong> Krátka príprava <em>5 s</em> (nastavenie, postavenie sa na lištu) a potom <em>5 minút</em> rozcvičky – ľahké kardio, mobilita ramien a zápästí, pár ľahkých visov na veľkých chytoch (bez prepätia predlaktí).</p>
+               <p><strong>Podrobne o tomto tréningu:</strong> Tento warm-up je zámerne jednoduchý: cieľom je zvýšiť teplotu svalov a prekrvenie predlaktí, aktivovať lopatky a pripraviť šľachy prstov na ďalší tréning. Venuj sa ~5 minútam ľahkého pohybu (chod, dynamické pohyby ramien, mobilita zápästí) a vykonaj len veľmi jemné visy alebo krátke bouldrové pohyby bez dosiahnutia pálenia.</p>
+               <div class="research">
+                 <div class="research-title">Výskumy k tomuto plánu:</div>
+                 <div class="research-links">
+                   <a class="research-btn" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11877290" target="_blank" rel="noopener">Warm-up review (PMC11877290)</a>
+                   <a class="research-btn" href="https://www.researchgate.net/publication/340619286_Effects_of_Different_Intensities_of_Warm_up_on_the_Balance_of_Indoor_Climbers" target="_blank" rel="noopener">Warm-up balance study</a>
+                   <a class="research-btn" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10973541/?utm_source=chatgpt.com" target="_blank" rel="noopener">Acute warm-up effects (PMC10973541)</a>
+                 </div>
+               </div>`
+      },
+      base: { prep: 5, work: 300, rest: 0, rounds: 1, cycles: 1, cRest: 0 },
+      levels: { easy: {}, medium: {}, hard: {} },
+      ui: { hintWork: 'Rozcvička', hintRest: 'Voľný pohyb', hintCRest: '' }
+    },
+    {
+      id: 'hang-max',
+      name: 'Max Hangs (Sila prstov)',
+      info: {
+        badge: 'Neuromuskulárna Sila',
+        text: `<p><strong>V jednoduchosti čo robiť:</strong> Vyber si pohodlnú lištu, na ktorej udržíš vis okolo <em>10–12 s</em> s veľkým úsilím. Visíš krátko, takmer na maximum, potom dlho oddychuješ (<em>3–5 minút</em>). Robíš málo kvalitných visov, nie veľa objemu.</p>
+               <p><strong>Podrobne o tomto tréningu:</strong> Max hangs cielia na maximálnu silu úchopu. Intenzita je približne <em>90–100 %</em> tvojho maxima: 5–10 s visy s pridanou váhou alebo na menšej lište, vždy ukončené tesne pred zlyhaním. Dlhé pauzy <em>3–5 minút</em> medzi vismi a sériami umožnia plné doplnenie ATP‑CP systému a podporujú neurálne adaptácie (zvýšenie rekrutácie svalových vlákien). 4–8 týždňov takéhoto tréningu <em>1–2× týždenne</em> vedie k významnému nárastu maximálnej sily prstov.</p>
+               <div class="research">
+                 <div class="research-title">Výskumy k tomuto plánu:</div>
+                 <div class="research-links">
+                   <a class="research-btn" href="https://www.frontiersin.org/journals/sports-and-active-living/articles/10.3389/fspor.2022.862782/full" target="_blank" rel="noopener">Frontiers 2022</a>
+                   <a class="research-btn" href="https://pubmed.ncbi.nlm.nih.gov/39560837/" target="_blank" rel="noopener">Effects of loading</a>
+                   <a class="research-btn" href="https://www.nature.com/articles/s41598-021-92898-2?error=cookies_not_supported&code=308f5fbb-ab2e-472d-997e-84b7a283367d" target="_blank" rel="noopener">Hangboard RCT</a>
+                 </div>
+               </div>`
+      },
+      base: { prep: 5, work: 10, rest: 180, rounds: 5, cycles: 2, cRest: 300 },
+      levels: { easy: { rounds: 3, cycles: 1 }, medium: {}, hard: { rounds: 6, rest: 150 } },
+      ui: { hintWork: 'Vis na ~90 % maxima. Drž čistú techniku.', hintRest: 'Úplný oddych. Prejdi sa.', hintCRest: 'Dlhá pauza. Priprav úchop.' }
+    },
+    {
+      id: 'hang-repeaters',
+      name: 'Repeaters 7/3 (Vytrvalosť prstov)',
+      info: {
+        badge: 'Silová Vytrvalosť',
+        text: `<p><strong>V jednoduchosti čo robiť:</strong> Visíš <em>7 s</em>, <em>3 s</em> krátky odpočinok a takto <em>6×</em> na tom istom úchope. Potom <em>3 min</em> pauza a ďalšia séria. Záťaž nastav tak, aby posledné visy už výrazne pálili, ale ich ešte dokončíš.</p>
+               <p><strong>Podrobne o tomto tréningu:</strong> Repeaters 7/3 sú intervalový protokol zameraný na lokálnu vytrvalosť predlaktí a toleranciu „pumpy“. Striedanie <em>7 s</em> práce a <em>3 s</em> odpočinku vytvára vysoký metabolický stres a čiastočnú hypoxiu, čím sa zvyšuje kapilarizácia a aeróbna kapacita svalov. Pri <em>2 tréningoch/týždeň</em> počas 4–8 týždňov môže tento protokol výrazne zlepšiť čas do vyčerpania a vytrvalosť.</p>
+               <div class="research">
+                 <div class="research-title">Výskumy k tomuto plánu:</div>
+                 <div class="research-links">
+                   <a class="research-btn" href="https://pubmed.ncbi.nlm.nih.gov/30988852/" target="_blank" rel="noopener">Repeaters study</a>
+                   <a class="research-btn" href="https://trainingforclimbing.com/4-fingerboard-strength-protocols-that-work/" target="_blank" rel="noopener">Fingerboard protokoly</a>
+                   <a class="research-btn" href="https://www.frontiersin.org/journals/sports-and-active-living/articles/10.3389/fspor.2022.862782/full" target="_blank" rel="noopener">Frontiers 2022</a>
+                 </div>
+               </div>`
+      },
+      base: { prep: 5, work: 7, rest: 3, rounds: 6, cycles: 3, cRest: 180 },
+      levels: { easy: { cycles: 2 }, medium: {}, hard: { cycles: 4 } },
+      ui: { hintWork: 'Drž techniku aj keď páli.', hintRest: 'Rýchlo stras ruky.', hintCRest: 'Vydýchaj pumpu, ale nevychlaď sa.' }
+    },
+    {
+      id: 'pull-strength',
+      name: 'Weighted Pull-ups (Ťažké zhyby)',
+      info: {
+        badge: 'Ťahová Sila',
+        text: `<p><strong>V jednoduchosti čo robiť:</strong> Ak zvládneš ≥ <em>10–12</em> čistých zhybov s vlastnou váhou, pridaj ~<em>10–20 %</em> hmotnosti (vesta alebo kotúč). Rob <em>2–4 série</em> po <em>4–6</em> technických zhyboch, medzi sériami odpočívaj <em>2–3 min</em>.</p>
+               <p><strong>Podrobne o tomto tréningu:</strong> Ťažké zhyby s pridanou záťažou rozvíjajú maximálnu ťahovú silu (lat, biceps, stabilizátory ramena). Protokol je silový: nízky počet opakovaní pri vysokej intenzite, s dostatočnými prestávkami (<em>2–3 min</em>) pre zachovanie kvality a zníženie kumulatívneho preťaženia lakťov.</p>
+               <div class="research">
+                 <div class="research-title">Výskumy k tomuto plánu:</div>
+                 <div class="research-links">
+                   <a class="research-btn" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10540777/" target="_blank" rel="noopener">Pull-up study</a>
+                   <a class="research-btn" href="https://www.trainingbeta.com/eric-horst-4-pull-variations/" target="_blank" rel="noopener">Eric Hörst</a>
+                   <a class="research-btn" href="https://www.climbing.com/skills/do-pull-ups-help-climbing/?scope=anon" target="_blank" rel="noopener">Climbing article</a>
+                 </div>
+               </div>`
+      },
+      base: { prep: 10, work: 30, rest: 150, rounds: 5, cycles: 1, cRest: 0 },
+      levels: { easy: { rounds: 3 }, medium: {}, hard: { rounds: 6 } },
+      ui: { hintWork: '4–6 ťažkých zhybov. Čisto.', hintRest: 'Zlož záťaž, rozhýb ramená.' }
+    },
+    {
+      id: 'pull-emom',
+      name: 'EMOM Pull-ups (Kapacita / vytrvalosť)',
+      info: {
+        badge: 'Kapacita',
+        text: `<p><strong>V jednoduchosti čo robiť:</strong> Nastav <em>1-min interval</em>. Na začiatku každej minúty urob dohodnutý počet zhybov (napr. <em>3–5</em>), zvyšok minúty oddychuj. Pokračuj <em>10–20 min</em> podľa úrovne; ak nevieš dokončiť, zníž počet zhybov.</p>
+               <p><strong>Podrobne o tomto tréningu:</strong> EMOM tréning zhybov buduje pracovnú kapacitu a odolnosť voči únave. Kumulatívny objem po 10–20 minútach môže dosiahnuť <em>50–100</em> opakovaní. Intenzita jednej série nie je maximálna, ale únava sa postupne nabaľuje, čím sa zvyšuje metabolický stres a odolnosť.</p>
+               <div class="research">
+                 <div class="research-title">Výskumy k tomuto plánu:</div>
+                 <div class="research-links">
+                   <a class="research-btn" href="https://www.trainingbeta.com/eric-horst-4-pull-variations/" target="_blank" rel="noopener">Eric Hörst</a>
+                   <a class="research-btn" href="https://www.climbing.com/skills/do-pull-ups-help-climbing/?scope=anon" target="_blank" rel="noopener">Climbing article</a>
+                   <a class="research-btn" href="https://link.springer.com/article/10.1186/s40798-024-00677-w" target="_blank" rel="noopener">SportsMed review</a>
+                 </div>
+               </div>`
+      },
+      base: { prep: 10, work: 15, rest: 45, rounds: 10, cycles: 1, cRest: 0 },
+      levels: { easy: { rounds: 6 }, medium: {}, hard: { rounds: 12 } },
+      ui: { hintWork: 'Séria zhybov, submaximálne.', hintRest: 'Dýchaj, stras ruky.', hintCRest: '—' }
+    },
+    {
+      id: 'frenchies',
+      name: 'Frenchies',
+      info: {
+        badge: 'Lock-off Sila',
+        text: `<p><strong>V jednoduchosti čo robiť:</strong> Spravíš zhyb hore a podržíš bradu nad hrazdou <em>4 s</em>, potom sa spustíš do <em>90°</em> v lakťoch a držíš <em>4 s</em>, nakoniec do ≈<em>120°</em> a opäť <em>4 s</em>. To je jeden cyklus; bez pauzy sprav 2–3 cykly, potom <em>5 min</em> odpočinku a zopakuj 1–2 série.</p>
+               <p><strong>Podrobne o tomto tréningu:</strong> Frenchies kombinujú koncentrické zhyby s izometrickými výdržami v troch kľúčových uhloch lakťa (plný zhyb, <em>90°</em>, <em>120°</em>). Rozvíjajú lock‑off silu a miestnu vytrvalosť; pre tento protokol odporúčané max <em>1–2× týždenne</em> s dôrazom na techniku a kontrolu pohybu.</p>
+               <div class="research">
+                 <div class="research-title">Výskumy k tomuto plánu:</div>
+                 <div class="research-links">
+                   <a class="research-btn" href="https://www.trainingbeta.com/eric-horst-4-pull-variations/" target="_blank" rel="noopener">Eric Hörst</a>
+                   <a class="research-btn" href="https://www.climbing.com/skills/do-pull-ups-help-climbing/?scope=anon" target="_blank" rel="noopener">Climbing article</a>
+                   <a class="research-btn" href="https://pubmed.ncbi.nlm.nih.gov/28945641/" target="_blank" rel="noopener">4‑week RFD study</a>
+                 </div>
+               </div>`
+      },
+      base: { prep: 5, work: 45, rest: 240, rounds: 3, cycles: 1, cRest: 0 },
+      levels: { easy: { rounds: 2 }, medium: {}, hard: { rounds: 4 } },
+      ui: { hintWork: 'Zhyb + 3–4 výdrže v rôznych uhloch.', hintRest: 'Dlhý oddych, rozhýb lakte.', hintCRest: '—' }
+    },
+    {
+      id: 'custom',
+      name: 'Vlastný plán',
+      info: { 
+        badge: 'Custom', 
+        text: `<p><strong>V jednoduchosti čo robiť:</strong> Vyber si cieľ (<em>sila prstov, vytrvalosť, ťahová sila</em>) a nastav časy tak, aby „work“ fáza bola buď krátka a veľmi intenzívna, alebo dlhšia a stredne ťažká. Počet opakovania a sérií prispôsob podľa únavy a časových možností.</p>
+               <p><strong>Podrobne o tomto tréningu:</strong> Vlastný plán ti umožní skombinovať princípy z max hangs, repeaterov a zhybových protokolov. Pri silových cieľoch vol krátke visy alebo nízky počet ťažkých zhybov s dlhými prestávkami; pri vytrvalostných cieľoch zvoľ dlhšie série s kratšími pauzami. Celkový počet náročných tréningových dní by nemal presiahnuť približne <em>4/týždeň</em>.</p>
+               <div class="research">
+                 <div class="research-title">Výskumy k tomuto plánu:</div>
+                 <div class="research-links">
+                   <a class="research-btn" href="https://www.frontiersin.org/journals/sports-and-active-living/articles/10.3389/fspor.2022.862782/full" target="_blank" rel="noopener">Frontiers 2022</a>
+                   <a class="research-btn" href="https://www.nature.com/articles/s41598-021-92898-2?error=cookies_not_supported&code=308f5fbb-ab2e-472d-997e-84b7a283367d" target="_blank" rel="noopener">Hangboard RCT</a>
+                   <a class="research-btn" href="https://pubmed.ncbi.nlm.nih.gov/30988852/" target="_blank" rel="noopener">Grip endurance RCT</a>
+                 </div>
+               </div>`
+      },
+      base: { prep: 5, work: 10, rest: 30, rounds: 5, cycles: 2, cRest: 120 },
+      levels: null,
+      ui: { hintWork: 'Makať podľa vlastných pravidiel.', hintRest: 'Oddych.', hintCRest: 'Dlhšia pauza.' }
+    }
+  ];
+
+  /* === 2. UI & STATE === */
+  const els = {
+    ring: document.getElementById('ringProgress'),
+    glow: document.getElementById('glowBackdrop'),
+  time: document.getElementById('timeDisplay'),
+    totalTime: document.getElementById('totalTimeDisplay'),
+    phaseLbl: document.getElementById('phaseLabel'),
+    instText: document.getElementById('instructionText'),
+    round: document.getElementById('roundCurr'),
+    roundTot: document.getElementById('roundTot'),
+    cycle: document.getElementById('cycleCurr'),
+    cycleTot: document.getElementById('cycleTot'),
+  btnAction: document.getElementById('btnAction'),
+    btnReset: document.getElementById('btnReset'),
+    btnSkipRest: document.getElementById('btnSkipRest'),
+    settingsModal: document.getElementById('settingsModal'),
+    infoModal: document.getElementById('infoModal'),
+    infoContent: document.getElementById('infoContent'),
+    presetSel: document.getElementById('presetSelect'),
+    diffBtns: document.querySelectorAll('.diff-opt'),
+    customConfig: document.getElementById('customConfig'),
+    instructionBar: document.getElementById('instructionBar'),
+    nextPhase: document.getElementById('nextPhaseInfo'),
+    timerWrapper: document.querySelector('.timer-wrapper'),
+    injuryWarnings: document.getElementById('injuryWarnings'),
+    barWrap: document.getElementById('phaseProgressBar'),
+    bar: document.getElementById('barProgress')
+  };
+
+  function setActionLabel(label, state = 'idle') {
+    const btn = els.btnAction;
+    if (!btn) return;
+    const textEl = btn.querySelector('.btn-text');
+    if (textEl) textEl.textContent = label;
+    btn.setAttribute('data-state', state);
+  }
+
+  function getPresetShortName(id) {
+    switch (id) {
+      case 'warmup': return 'Rozcvička';
+      case 'hang-max': return 'Max Hangs';
+      case 'hang-repeaters': return 'Repeaters 713';
+      case 'pull-strength': return 'Weighted Pull-ups';
+      case 'pull-emom': return 'EMOM Pull-ups';
+      case 'frenchies': return 'Frenchies';
+      case 'custom': return 'Vlastný plán';
+      default: return 'Pripravený?';
+    }
+  }
+
+  let currentPresetId = 'warmup';
+  let currentDifficulty = 'medium';
+  let config = {};
+  
+  let timerInterval = null;
+  let isRunning = false;
+  let isPaused = false;
+  let audioUnlocked = false;
+
+  let phase = 'idle'; 
+  let timeLeft = 0;
+  let maxPhaseTime = 0;
+  let totalTimeLeft = 0;
+  let roundIndex = 1;
+  let cycleIndex = 1;
+
+  // flag aby countdown.mp3 hral len raz v danej fáze
+  let countdownPlayed = false;
+
+  // haptics (vibration) support
+  let hapticsEnabled = true; // default enabled on devices that support it
+
+
+  const sounds = {
+    prepare: document.getElementById('sndPrepare'),
+    phase: document.getElementById('sndPhase'),
+    count: document.getElementById('sndCount'),
+    finish: document.getElementById('sndFinish')
+  };
+
+  // slovenské názvy fáz
+  const phaseLabels = {
+    idle: 'ČAKANIE',
+    prepare: 'PRÍPRAVA',
+    work: 'CVIČENIE',
+    rest: 'ODDYCH',
+    cycleRest: 'PAUZA SÉRIE',
+    finished: 'HOTOVO'
+  };
+
+  /* === 3. INITIALIZATION === */
+  function init() {
+    presets.forEach(p => {
+      const o = document.createElement('option');
+      o.value = p.id;
+      o.textContent = p.name;
+      if (p.id === 'warmup') o.selected = true;
+      els.presetSel.appendChild(o);
+    });
+
+    els.presetSel.addEventListener('change', () => {
+      currentPresetId = els.presetSel.value;
+      if (currentPresetId !== 'custom') currentDifficulty = 'medium';
+      updateUIConfig();
+      loadConfigAndReset();
+    });
+
+    els.diffBtns.forEach(b => {
+      b.addEventListener('click', (e) => {
+        currentDifficulty = e.target.dataset.val;
+        updateUIConfig();
+        loadConfigAndReset();
+      });
+    });
+
+    els.customConfig.addEventListener('input', () => {
+      if (currentPresetId === 'custom') loadConfigAndReset();
+    });
+
+    document.getElementById('btnSettings').addEventListener('click', () => els.settingsModal.classList.add('open'));
+    document.getElementById('closeSettings').addEventListener('click', () => els.settingsModal.classList.remove('open'));
+    document.getElementById('btnInfo').addEventListener('click', showInfo);
+    document.getElementById('closeInfo').addEventListener('click', () => els.infoModal.classList.remove('open'));
+
+    // umožni zatvoriť info modal kliknutím mimo .modal-content (na overlay)
+    els.infoModal.addEventListener('click', (e) => {
+      if (e.target === els.infoModal) {
+        els.infoModal.classList.remove('open');
+      }
+    });
+    // to isté pre settings modal — kliknutím mimo obsahu sa modal zavrie
+    els.settingsModal.addEventListener('click', (e) => {
+      if (e.target === els.settingsModal) {
+        els.settingsModal.classList.remove('open');
+      }
+    });
+
+    els.btnAction.addEventListener('click', handleActionClick);
+    els.btnReset.addEventListener('click', fullReset);
+
+    // big timer: clicking the timer-wrapper toggles fullscreen mode; ESC closes
+    if (els.timerWrapper) {
+      els.timerWrapper.addEventListener('click', (ev) => {
+        const interactive = ev.target.closest('button, a, input, select, textarea');
+        if (interactive) return;
+        toggleBigTimer();
+      });
+    }
+    // skip phase button wiring (will skip current phase)
+    if (els.btnSkipRest) {
+      els.btnSkipRest.addEventListener('click', (ev) => { ev.stopPropagation(); skipPhase(); });
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.body.classList.contains('big-timer')) closeBigTimer();
+    });
+
+    updateUIConfig();
+    loadConfigAndReset();
+  }
+
+  /* === 4. LOGIC === */
+  function updateUIConfig() {
+    els.diffBtns.forEach(b => b.classList.toggle('active', b.dataset.val === currentDifficulty));
+    const isCustom = (currentPresetId === 'custom');
+    els.customConfig.classList.toggle('hidden', !isCustom);
+    document.getElementById('difficultyRow').classList.toggle('hidden', isCustom);
+  }
+
+  function showInfo() {
+    const p = presets.find(x => x.id === currentPresetId);
+    els.infoContent.innerHTML = `<div class="info-badge">${p.info.badge}</div>${p.info.text}`;
+    els.infoModal.classList.add('open');
+  }
+
+  function loadConfigAndReset() {
+    const p = presets.find(x => x.id === currentPresetId);
+    
+    if (currentPresetId === 'custom') {
+      const val = (id) => parseInt(document.getElementById(id).value, 10) || 0;
+      config = {
+        prep: val('c_prep'),
+        work: val('c_work'),
+        rest: val('c_rest'),
+        rounds: val('c_rounds'),
+        cycles: val('c_cycles'),
+        cRest: val('c_crest'),
+        ui: p.ui
+      };
+    } else {
+      const diffData = p.levels ? (p.levels[currentDifficulty] || {}) : {};
+      config = { ...p.base, ...diffData, ui: p.ui };
+    }
+    
+    fullReset();
+    // update injury warnings visibility after loading a new preset/config
+    try { showInjuryWarningsIfNeeded(phase); } catch (e) {}
+    try { updateSkipPhaseButton(phase); } catch (e) {}
+  }
+
+  function calcTotal() {
+    const c = config;
+    const cycleTime = (c.rounds * c.work) + ((c.rounds - 1) * c.rest);
+    const allCycles = c.cycles * cycleTime;
+    const allCRests = (c.cycles - 1) * c.cRest;
+    return c.prep + allCycles + allCRests;
+  }
+
+  function formatTime(s) {
+    if (s < 0) s = 0;
+    const m = Math.floor(s / 60);
+    const sc = s % 60;
+    return `${m}:${sc < 10 ? '0' + sc : sc}`;
+  }
+
+  /* === 5. TIMER ENGINE === */
+  function handleActionClick() {
+    if (!audioUnlocked) {
+      Object.values(sounds).forEach(s => { s.volume = 1.0; s.play().catch(()=>{}); s.pause(); s.currentTime = 0; });
+      audioUnlocked = true;
+    }
+
+    if (phase === 'finished') {
+      fullReset();
+      return;
+    }
+
+    if (isRunning) {
+      stopTimer();
+      isPaused = true;
+      setActionLabel("POKRAČOVAŤ", 'idle');
+      els.phaseLbl.textContent = "PAUZA";
+    } else {
+      isRunning = true;
+      isPaused = false;
+      setActionLabel("PAUZA", 'running');
+      els.btnReset.disabled = false;
+      
+      if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(()=>{});
+
+      if (phase === 'idle') {
+        setPhase('prepare');
+      } else {
+        timerInterval = setInterval(tick, 1000);
+      }
+    }
+  }
+
+  function fullReset() {
+    stopTimer();
+    phase = 'idle';
+    isPaused = false;
+    roundIndex = 1;
+    cycleIndex = 1;
+    countdownPlayed = false;
+    
+    timeLeft = config.prep || 0;
+    maxPhaseTime = config.prep || 0;
+    totalTimeLeft = calcTotal();
+    
+    renderDisplay();
+  // show plan name when idle (pre-start) instead of generic 'PRIPRAVENÝ ?'
+  els.phaseLbl.textContent = getPresetShortName(currentPresetId);
+    els.phaseLbl.style.color = "var(--text-muted)";
+    els.instText.textContent = "Stlač Štart.";
+    
+    els.ring.style.strokeDashoffset = 0;
+    if (els.bar) {
+      els.bar.style.transition = 'none';
+      els.bar.style.width = '100%';
+      requestAnimationFrame(() => { if (els.bar) els.bar.style.transition = 'width 1s linear'; });
+    }
+    document.body.style.setProperty('--shadow-color', 'var(--text-muted)');
+    els.instructionBar.style.borderColor = 'var(--text-muted)';
+    
+  setActionLabel("ŠTART", 'idle');
+    els.btnReset.disabled = true;
+    try { updateSkipPhaseButton('idle'); } catch (e) {}
+  }
+
+  function stopTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = null;
+    isRunning = false;
+  }
+
+  function setPhase(newPhase, opts = {}) {
+    stopTimer();
+    isRunning = true;
+
+    phase = newPhase;
+    let dur = 0;
+    let color = '';
+    let hint = '';
+    let soundToPlay = null;
+
+    if (newPhase === 'prepare') {
+      dur = config.prep; color = 'var(--color-prepare)'; hint = "Priprav sa!"; soundToPlay = 'prepare';
+    } else if (newPhase === 'work') {
+      dur = config.work; color = 'var(--color-work)'; hint = config.ui.hintWork; soundToPlay = 'phase';
+    } else if (newPhase === 'rest') {
+      dur = config.rest; color = 'var(--color-rest)'; hint = config.ui.hintRest; soundToPlay = 'phase';
+    } else if (newPhase === 'cycleRest') {
+      dur = config.cRest; color = 'var(--color-cycle-rest)'; hint = config.ui.hintCRest; soundToPlay = 'phase';
+    } else if (newPhase === 'finished') {
+      finishWorkout();
+      return;
+    }
+
+    timeLeft = dur;
+    maxPhaseTime = dur;
+    countdownPlayed = false; // nový blok → nový countdown
+
+    document.body.style.setProperty('--shadow-color', color);
+    els.phaseLbl.textContent = phaseLabels[newPhase] || newPhase.toUpperCase();
+    els.phaseLbl.style.color = color;
+    els.instructionBar.style.borderColor = color;
+    els.ring.style.stroke = color;
+    els.instText.textContent = hint;
+
+    els.ring.style.transition = 'none';
+    els.ring.style.strokeDashoffset = 0;
+    if (els.bar) {
+      els.bar.style.transition = 'none';
+      els.bar.style.width = '100%';
+    }
+    
+    if (!opts.noSound && soundToPlay && sounds[soundToPlay]) {
+      sounds[soundToPlay].currentTime = 0;
+      sounds[soundToPlay].play().catch(()=>{});
+    }
+
+    renderDisplay();
+
+    timerInterval = setInterval(tick, 1000);
+    
+    requestAnimationFrame(() => {
+       els.ring.style.transition = 'stroke-dashoffset 1s linear';
+       if (els.bar) els.bar.style.transition = 'width 1s linear';
+    });
+    // haptics, animations and warnings triggered on phase start
+    try { triggerHaptics(newPhase); } catch(e){}
+    try { triggerPhaseAnimations(); } catch(e){}
+    try { showInjuryWarningsIfNeeded(newPhase); } catch(e){}
+    try { updateSkipPhaseButton(newPhase); } catch(e){}
+  }
+
+  function tick() {
+    // COUNTDOWN – spusti len raz, keď zostávajú 4 sekundy (o 1s skôr)
+    if (!countdownPlayed && timeLeft === 4) {
+      countdownPlayed = true;
+      if (sounds.count) {
+        sounds.count.currentTime = 0;
+        sounds.count.play().catch(()=>{});
+      }
+    }
+
+    timeLeft--;
+    totalTimeLeft--;
+    
+    renderDisplay();
+    
+    const max = 816;
+    const ratioRaw = maxPhaseTime > 0 ? (timeLeft / maxPhaseTime) : 0;
+    const ratio = Math.max(0, Math.min(1, ratioRaw));
+    const offset = 816 - (ratio * 816);
+    els.ring.style.strokeDashoffset = offset;
+    if (els.bar) els.bar.style.width = `${ratio * 100}%`;
+
+    if (timeLeft <= 0) {
+      nextPhase();
+    }
+  }
+
+  function nextPhase() {
+    if (phase === 'prepare') {
+      roundIndex = 1; cycleIndex = 1;
+      setPhase('work');
+    } 
+    else if (phase === 'work') {
+      if (roundIndex < config.rounds) {
+        if (config.rest > 0) setPhase('rest');
+        else { roundIndex++; setPhase('work'); }
+      } else {
+        if (cycleIndex < config.cycles) {
+          if (config.cRest > 0) setPhase('cycleRest');
+          else { cycleIndex++; roundIndex = 1; setPhase('work'); }
+        } else {
+          setPhase('finished');
+        }
+      }
+    } 
+    else if (phase === 'rest') {
+      roundIndex++;
+      setPhase('work');
+    } 
+    else if (phase === 'cycleRest') {
+      cycleIndex++;
+      roundIndex = 1;
+      setPhase('work');
+    }
+  }
+
+
+  function finishWorkout() {
+      
+       stopTimer();
+    phase = 'finished';
+    timeLeft = 0;
+    renderDisplay();
+    const finishedColor = getComputedStyle(document.documentElement).getPropertyValue('--color-rest').trim() || '#10b981';
+    document.body.style.setProperty('--shadow-color', finishedColor);
+    if (els.glow) els.glow.style.background = finishedColor;
+    if (els.ring) els.ring.style.stroke = finishedColor;
+    if (els.instructionBar) els.instructionBar.style.borderColor = finishedColor;
+    if (els.phaseLbl) els.phaseLbl.style.color = finishedColor; // zelený nápis HOTOVO
+
+    els.phaseLbl.textContent = "HOTOVO";
+    els.instText.textContent = "Tréning hotový.";
+    setActionLabel("NOVÝ", 'idle');
+
+    if (sounds.finish) {
+      sounds.finish.currentTime = 0;
+      sounds.finish.play().catch(()=>{});
+    }
+  }
+
+  function getUpcomingPhasePreview() {
+    if (!config || !config.work) return null;
+    // returns { phase: 'rest'|'work'|..., time: seconds } or null if none
+    if (phase === 'idle') return { phase: 'prepare', time: config.prep || 0 };
+    if (phase === 'prepare') return { phase: 'work', time: config.work || 0 };
+    if (phase === 'work') {
+      if (roundIndex < (config.rounds || 0)) {
+        if ((config.rest || 0) > 0) return { phase: 'rest', time: config.rest || 0 };
+        return { phase: 'work', time: config.work || 0 };
+      } else {
+        if (cycleIndex < (config.cycles || 0)) {
+          if ((config.cRest || 0) > 0) return { phase: 'cycleRest', time: config.cRest || 0 };
+          return { phase: 'work', time: config.work || 0 };
+        } else {
+          return { phase: 'finished', time: 0 };
+        }
+      }
+    }
+    if (phase === 'rest') return { phase: 'work', time: config.work || 0 };
+    if (phase === 'cycleRest') return { phase: 'work', time: config.work || 0 };
+    if (phase === 'finished') return null;
+    return null;
+  }
+
+  function updateNextPhaseInfo() {
+    const preview = getUpcomingPhasePreview();
+    if (!preview) {
+      els.nextPhase.classList.add('hidden');
+      return;
+    }
+    els.nextPhase.classList.remove('hidden');
+    const label = phaseLabels[preview.phase] || preview.phase.toUpperCase();
+    // zobrazí "Nasleduje: 2:00 — ODDYCH"
+    els.nextPhase.textContent = `Nasleduje: ${formatTime(preview.time)} — ${label.toLowerCase()}`;
+  }
+
+  function renderDisplay() {
+    // render minutes and seconds separately so big-timer can stack them
+    const mins = Math.floor(timeLeft / 60);
+    const secs = timeLeft % 60;
+    const minEl = els.time.querySelector('.mins');
+    const secEl = els.time.querySelector('.secs');
+    if (minEl) {
+      // In Big Timer mode show minutes with two digits (pad with leading zero)
+      let minsStr = String(mins);
+      if (document.body.classList.contains('big-timer')) minsStr = minsStr.padStart(2, '0');
+      minEl.textContent = minsStr;
+    }
+    if (secEl) secEl.textContent = secs < 10 ? '0' + secs : secs;
+    els.totalTime.textContent = `Celkom: ${formatTime(totalTimeLeft > 0 ? totalTimeLeft : 0)}`;
+    els.round.textContent = roundIndex;
+    els.roundTot.textContent = config.rounds || 0;
+    els.cycle.textContent = cycleIndex;
+    els.cycleTot.textContent = config.cycles || 0;
+    updateNextPhaseInfo();
+  }
+
+  /* === HAPTICS (VIBRATION) === */
+  function triggerHaptics(phaseName) {
+    try {
+      if (!hapticsEnabled) return;
+      if (!('vibrate' in navigator)) return; // not supported
+
+      // simple patterns: values are ms; arrays = on/off sequence
+      if (phaseName === 'prepare') {
+        // short gentle buzz
+        navigator.vibrate(40);
+      } else if (phaseName === 'work') {
+        // double short buzz to indicate start of work
+        navigator.vibrate([60, 80, 60]);
+      } else if (phaseName === 'rest') {
+        // longer single vibration for rest
+        navigator.vibrate(220);
+      } else if (phaseName === 'cycleRest') {
+        navigator.vibrate(160);
+      } else if (phaseName === 'finished') {
+        navigator.vibrate([100,40,100]);
+      }
+    } catch (e) {
+      // fail silently if vibration call errors
+      console.warn('Haptics error', e);
+    }
+  }
+
+  /* === INJURY WARNINGS (for Max Hangs) === */
+  function showInjuryWarningsIfNeeded(phaseName) {
+    try {
+      const el = els.injuryWarnings;
+      if (!el) return;
+
+      // Show warnings only for the Max Hangs preset during the REST phase
+      if (currentPresetId === 'hang-max' && (phaseName === 'rest')) {
+        el.innerHTML = `
+          <span class="warn">⚠ Nepoužívaj full-crimp pri veľkej záťaži.</span>
+          <span class="warn">⚠ Ak cítiš pichnutie prste, okamžite prestaň!</span>
+          <span class="warn">⚠ Vždy pred tréningom 30 s aktivácie extenzorov.</span>
+        `;
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+        el.innerHTML = '';
+      }
+    } catch (e) {
+      console.warn('Injury warnings error', e);
+    }
+  }
+
+  function updateSkipPhaseButton(phaseName) {
+    try {
+      const b = els.btnSkipRest;
+      if (!b) return;
+      // show during any active phase except before start (idle) and after finished
+      if (phaseName && phaseName !== 'idle' && phaseName !== 'finished') {
+        b.classList.remove('hidden');
+        b.setAttribute('aria-hidden', 'false');
+      } else {
+        b.classList.add('hidden');
+        b.setAttribute('aria-hidden', 'true');
+      }
+    } catch (e) { console.warn('skip button error', e); }
+  }
+
+  function skipPhase() {
+    // Do nothing if there's no active phase to skip
+    if (!phase || phase === 'idle' || phase === 'finished') return;
+
+    // Deduct the remaining time of the current phase from the total time
+    try {
+      const remaining = typeof timeLeft === 'number' ? timeLeft : 0;
+      totalTimeLeft = Math.max(0, (typeof totalTimeLeft === 'number' ? totalTimeLeft : 0) - remaining);
+    } catch (e) { /* ignore */ }
+
+    // Suppress sounds when skipping
+    const noSoundOpts = { noSound: true };
+
+    if (phase === 'prepare') {
+      // skip preparation -> start work
+      setPhase('work', noSoundOpts);
+      return;
+    }
+
+    if (phase === 'work') {
+      // mimic end-of-work behavior
+      if (roundIndex < config.rounds) {
+        if (config.rest > 0) return setPhase('rest', noSoundOpts);
+        roundIndex++;
+        return setPhase('work', noSoundOpts);
+      } else {
+        if (cycleIndex < config.cycles) {
+          if (config.cRest > 0) return setPhase('cycleRest', noSoundOpts);
+          cycleIndex++; roundIndex = 1;
+          return setPhase('work', noSoundOpts);
+        } else {
+          return setPhase('finished', noSoundOpts);
+        }
+      }
+    }
+
+    if (phase === 'rest') {
+      // same as finishing rest
+      roundIndex++;
+      return setPhase('work', noSoundOpts);
+    }
+
+    if (phase === 'cycleRest') {
+      cycleIndex++;
+      roundIndex = 1;
+      return setPhase('work', noSoundOpts);
+    }
+  }
+
+  /* === BIG TIMER (fullscreen) === */
+  function toggleBigTimer() {
+    try {
+      const isNow = !document.body.classList.contains('big-timer');
+      document.body.classList.toggle('big-timer', isNow);
+      if (els.timerWrapper) els.timerWrapper.classList.toggle('big', isNow);
+      // when entering big-timer, ensure focus and prevent accidental gestures
+      if (isNow) {
+        // optional: try to keep screen awake if available
+        if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(()=>{});
+      }
+    } catch (e) { console.warn('Big timer toggle error', e); }
+  }
+
+  function closeBigTimer() {
+    try {
+      document.body.classList.remove('big-timer');
+      if (els.timerWrapper) els.timerWrapper.classList.remove('big');
+    } catch (e) { console.warn('Close big timer error', e); }
+  }
+
+
+  // Start
+  init();
+  
+// PWA install prompt handling
+let deferredPrompt = null;
+const brandInstallTrigger = document.getElementById('brandInstallTrigger');
+
+function triggerInstallPrompt() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.finally(() => { deferredPrompt = null; });
+  } else {
+    window.open('manifest.json', '_blank');
+  }
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+});
+
+if (brandInstallTrigger) {
+  brandInstallTrigger.addEventListener('click', triggerInstallPrompt);
+}
+  </script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function (err) {
+        console.log('SW registration failed:', err);
+      });
+    });
+  }
+</script>
+</body>
+</html>

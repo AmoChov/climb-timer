@@ -1,9 +1,14 @@
 // sw.js
-const CACHE_NAME = 'climb-timer-v1';
+const CACHE_NAME = 'climb-timer-v2';
 const ASSETS = [
-  'app.html',
+  '/',
+  'index.html',
   'manifest.json',
   'sw.js',
+  'timer.ico',
+  'timer.png',
+  'logo-bouldrovka.png',
+  'logo-bouldrovka-white.png',
   'countdown.mp3',
   'finish.mp3',
   'phase.mp3',
@@ -32,13 +37,19 @@ self.addEventListener('activate', (event) => {
       )
     )
   );
+  self.clients.claim();
 });
 
 // Fetch – najprv cache, ak nie je, potom sieť
 self.addEventListener('fetch', (event) => {
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      caches.match('index.html').then((cached) => cached || fetch(event.request))
+    );
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
+    caches.match(event.request).then((response) => response || fetch(event.request))
   );
 });
